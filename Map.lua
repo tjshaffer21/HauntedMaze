@@ -1,5 +1,3 @@
-dofile('Object.lua')
-
 Map = {}
 Map.__index = Map
 
@@ -69,7 +67,7 @@ function Map:generate_map()
                     enemy     = Enemy.create()
                     newObject = Path.create(enemy, false, true)
                 elseif s == "5" then
-                    --char      = Character.create()
+                    char      = Character.create()
                     newObject = Path.create(char, true, true)
                 end
             end

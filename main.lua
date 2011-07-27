@@ -1,7 +1,4 @@
 dofile('Object.lua')
-dofile('Path.lua')
-dofile('Wall.lua')
-dofile('Map.lua')
 
 -- Globals
 map = {} -- -1/-2: wall, 0 path
