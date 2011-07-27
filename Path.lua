@@ -13,61 +13,57 @@ function Path.create(contains, chTraverse, enTraverse)
     setmetatable(obj, Path)
     
     obj.is_a          = "Path"
-    obj.contains      = nil
+    obj.contains      = {}
     obj.char_traverse = chTraverse
     obj.enem_traverse = enTraverse
+    obj.priority      = 0
+    
+    if contains ~= nil then table.insert(obj.contains, contains) end
     
     return obj
 end
 
---[[--
-    Return object type
-    @return string
---]]--
 function Path:getType()
     return self.is_a
 end
 
---[[--
-    @return nil if no object, else object.isType
---]]--
-function Path:contains()
-    if self.contains == nil then
-        return nil
+function Path:getPriority()
+    return self.priority
+end
+
+function Path:draw()
+    local obj = self:findHighest()
+    if obj == self then
+        io.write("o ")
     else
-        self.contains.getType()
+        obj.draw()
     end
 end
 
---[[--
-    Set traverse by enemy
-    @parameter bool - true/false
---]]--
-function Path:traverseByEnemy(bool)
-    self.enem_traverse = bool
+function Path:addObject(object)
+    table.insert(self.contains, object)
 end
 
 --[[--
-    Set traverse by character
-    @parameter self
-    @parameter bool - true/false
+    Iterate through Path object and find which object contained within has
+    highest priority.
+    @return object with highest priority.
 --]]--
-function Path:traverseByCharacter(bool)
-    self.char_traverse = bool
+function Path:findHighest()
+    highest = self
+    for i,v in ipairs(self.contains) do
+        if v:getPriority() > highest:getPriority() then
+            highest = v
+        end
+    end
+    
+    return highest
 end
 
---[[--
-    Return if traversable by enemy
-    @retrun true/false
---]]--
-function Path:traversableEnem()
+function Path:canEnemyTraverse()
     return self.enem_traverse
 end
 
---[[--
-    Return if traversable by character.
-    @return true/false
---]]--
-function Path:traversableChar()
+function Path:canCharTraverse()
     return self.char_traverse
 end

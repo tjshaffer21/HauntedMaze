@@ -24,6 +24,10 @@ function Wall:getType()
     return self.is_a
 end
 
+function Wall:draw()
+    io.write("- ")
+end
+
 --[[--
     Return if wall is removable
     @return bool

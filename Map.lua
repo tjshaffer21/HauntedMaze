@@ -1,6 +1,4 @@
 dofile('Object.lua')
-dofile('Path.lua')
-dofile('Wall.lua')
 
 Map = {}
 Map.__index = Map
@@ -11,21 +9,14 @@ Map.__index = Map
     @parameter y - height of map
     @return table
 --]]--
-function Map.create(x,y)
+function Map.create(filename, x, y)
     local obj = {}
     setmetatable(obj, Map)
     
-    obj.x = x
-    obj.y = y
-    
-    obj.map = {}
-    for i=1,x do
-        obj.map[i] = {}
-        for j = 1, y do
-            obj.map[i][j] = Object.create(nil,nil)
-        end
-    end
-    
+    obj.filename = filename
+    obj.x        = x
+    obj.y        = y
+    obj.map      = {}
     return obj
 end
 
@@ -41,75 +32,52 @@ function Map:getMap()
     return self.map
 end
 
-function Map:generate_map(x,y)
-    local xi         = (x / 2)
-    local yi         = (y / 2)
-    local start_path_x, start_path_y = self:generate_cell(xi, yi)
+--[[--
+    Read and parse the file.
+    Data:
+        -1 - Path not traversable by character.
+         0 - Wall
+         1 - Traversable path, with pellet
+         2 - Traversable path, with supper pellet
+         3 - Traversable path, with no pellet
+         4 - Enemy
+         5 - Character
+--]]--
+function Map:generate_map() 
+    io.input(self.filename)
     
-    for i=1,x do
-        if i == 1 or i == x then
-            for j=1,(y-1) do
-                local newWall = Wall.create(false)
-                self.map[i][j]:setType(newWall:getType())
-                self.map[i][j]:setObject(newWall)
-            end
-        end
-                
-        newWall = Wall.create(false)
-        self.map[i][1]:setType(newWall:getType())
-        self.map[i][1]:setObject(newWall)
-        
-        newWall = Wall.create(false)
-        self.map[i][y]:setType(newWall:getType())
-        self.map[i][y]:setObject(newWall)
-    end
-end
+    local line = io.read()
+    while line ~= nil do
+        local mp = {}
 
-function Map:generate_cell(x,y)
-    local xi = x
-    local yi = y
-     
-    for i=-2,2 do
-        for j=-2,2 do
-            if i == -2 or j == -2 or i == 2 or j == 2 then
-                newWall = Wall.create(false)
-                self.map[xi-i][yi-j]:setType(newWall:getType())
-                self.map[xi-i][yi-j]:setObject(newWall)
+        for s in line:gmatch('%d+') do
+            newObject = nil
+            if s == "0" then
+               newObject = Wall.create(false)
             else
-                newPath = Path.create(nil, false, true)
-                self.map[xi-i][yi-j]:setType(newPath:getType())
-                self.map[xi-i][yi-j]:setObject(newPath)
+                if s == "-1" then
+                    newObject = Path.create(nil, false, true)
+                elseif s == "1" then
+                    pellet    = Pellet.create()
+                    newObject = Path.create(pellet, true, true)
+                elseif s == "2" then
+                    super     = SuperPellet.create()
+                    newObject = Path.create(super, true, true)
+                elseif s == "3" then
+                    newObject = Path.create(nil,true,true)
+                elseif s == "4" then
+                    enemy     = Enemy.create()
+                    newObject = Path.create(enemy, false, true)
+                elseif s == "5" then
+                    --char      = Character.create()
+                    newObject = Path.create(char, true, true)
+                end
             end
+            
+            table.insert(mp, newObject)
         end
+        
+        table.insert(self.map, mp)
+        line = io.read()
     end
-    
-    local door = 1 -- Needs to be replaced by random(1,4)
-    local rx = 0
-    local ry = 0
-    dPath = Path.create(nil,false, true)
-    
-    if door == 1 then
-        self.map[xi-2][yi] = dPath
-
-        rx = xi - 3
-        ry = yi
-    elseif door == 2 then
-        self.map[xi][yi+2] = dPath
-        
-        rx = xi
-        ry = yi + 3
-    elseif door == 3 then
-        self.map[xi+2][yi] = dPath
-        
-        rx = xi + 3
-        ry = yi
-    else
-        self.map[xi][yi-2] = dPath
-        
-        rx = xi + 3
-        ry = yi
-    end
-    
-    self.map[rx][ry] = Path.create(nil,true,true)
-    return rx,ry
 end
