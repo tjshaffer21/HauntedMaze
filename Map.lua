@@ -49,25 +49,25 @@ function Map:generate_map()
         local mp = {}
 
         for s in line:gmatch('%d+') do
-            newObject = nil
+            local newObject = nil
             if s == "0" then
                newObject = Wall.create(false)
             else
                 if s == "-1" then
                     newObject = Path.create(nil, false, true)
                 elseif s == "1" then
-                    pellet    = Pellet.create()
+                    --pellet    = Pellet.create()
                     newObject = Path.create(pellet, true, true)
                 elseif s == "2" then
-                    super     = SuperPellet.create()
+                    --super     = SuperPellet.create()
                     newObject = Path.create(super, true, true)
                 elseif s == "3" then
                     newObject = Path.create(nil,true,true)
                 elseif s == "4" then
-                    enemy     = Enemy.create()
+                    --enemy     = Enemy.create()
                     newObject = Path.create(enemy, false, true)
                 elseif s == "5" then
-                    char      = Character.create()
+                    --char      = Character.create()
                     newObject = Path.create(char, true, true)
                 end
             end

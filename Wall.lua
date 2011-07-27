@@ -24,8 +24,8 @@ function Wall:getType()
     return self.is_a
 end
 
-function Wall:draw()
-    io.write("- ")
+function Wall:draw(img,x,y)
+    love.graphics.draw(img,x,y)
 end
 
 --[[--

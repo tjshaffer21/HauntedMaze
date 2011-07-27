@@ -1,11 +1,11 @@
 function love.conf(t)
-    t.title             = "Pacman Clone"
+    t.title             = "Haunted Maze"
     t.author            = "Thomas Shaffer"
     t.identity          = nil
     t.version           = 1
     t.console           = false
     t.screen.width      = 800
-    t.screen.height     = 800
+    t.screen.height     = 750
     t.screen.fullscreen = false
     t.screen.vsync      = true
     t.screen.fsaa       = 0
@@ -18,5 +18,5 @@ function love.conf(t)
     t.modules.timer     = true
     t.modules.mouse     = false
     t.modules.sound     = false
-    t.modules.physics   = true
+    t.modules.physics   = false
 end

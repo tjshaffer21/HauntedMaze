@@ -21,8 +21,8 @@ function Enemy:getPriority()
     return self.priority
 end
 
-function Enemy:draw()
-    io.write("x ")
+function Enemy:draw(img,x,y)
+    love.graphics.draw(img,x,y)
 end
 
 function Enemy:getValue()

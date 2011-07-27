@@ -31,12 +31,12 @@ function Path:getPriority()
     return self.priority
 end
 
-function Path:draw()
+function Path:draw(img,x,y)
     local obj = self:findHighest()
     if obj == self then
-        io.write("o ")
+        love.graphics.draw(img,x,y)
     else
-        obj.draw()
+        obj.draw(img,x,y)
     end
 end
 
@@ -50,7 +50,7 @@ end
     @return object with highest priority.
 --]]--
 function Path:findHighest()
-    highest = self
+    local highest = self
     for i,v in ipairs(self.contains) do
         if v:getPriority() > highest:getPriority() then
             highest = v
