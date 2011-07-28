@@ -1,12 +1,11 @@
 Wall = {}
 Wall.__index = Wall
 
-function Wall.create(removable)
+function Wall.create()
     local obj = {}
     setmetatable(obj,Wall)
     
     obj.is_a      = "Wall"
-    obj.removable = removable
 
     return obj
 end
@@ -17,12 +16,4 @@ end
 
 function Wall:draw(x,y)
     love.graphics.draw(wallimg,x,y)
-end
-
-function Wall:isRemovable()
-    return self.removable
-end
-
-function Wall:setRemovable(bool)
-    self.removable = bool
 end

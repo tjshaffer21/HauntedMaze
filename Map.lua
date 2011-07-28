@@ -44,10 +44,10 @@ end
 function Map:generate_map() 
     io.input(self.filename)
     
-    local line  = io.read()
-    self.x      = tonumber(line)
-    line        = io.read()
-    self.y      = tonumber(line)
+    local line  = io.read("*number")    -- width
+    self.x      = line
+    line        = io.read("*number")    -- height
+    self.y      = line
     
     local i = 1
     line = io.read()
@@ -57,16 +57,18 @@ function Map:generate_map()
         for s in line:gmatch('(-?%d+)') do
             local newObject = nil
             if s == "0" then
-               newObject = Wall.create(false)
+               newObject = Wall.create()
             else
                 if s == "-1" then
                     newObject = Path.create(nil, false, true)
                 elseif s == "1" then
                     local pellet    = Pellet.create()
                     newObject       = Path.create(pellet, true, true)
+                    numPellets      = numPellets + 1
                 elseif s == "2" then
                     local super = SuperPellet.create()
                     newObject   = Path.create(super, true, true)
+                    numPellets  = numPellets + 1
                 elseif s == "3" then
                     newObject = Path.create(nil,true,true)
                 elseif s == "4" then
