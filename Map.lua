@@ -45,9 +45,9 @@ function Map:generate_map()
     io.input(self.filename)
     
     local line  = io.read()
-    self.x      = line
+    self.x      = tonumber(line)
     line        = io.read()
-    self.y      = line
+    self.y      = tonumber(line)
     
     local i = 1
     line = io.read()
@@ -74,16 +74,16 @@ function Map:generate_map()
                     newObject = Path.create(enemy, false, true)
                 elseif s == "5" then
                     character   = Character.create(j,i)
-                    newObject   = Path.create(char, true, true)
+                    newObject   = Path.create(character, true, true)
                 end
-                j = j+1
             end
             
             table.insert(mp, newObject)
-            i = i+1
+            j = j+1
         end
         
         table.insert(self.map, mp)
         line = io.read()
+        i = i + 1
     end
 end

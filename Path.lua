@@ -34,13 +34,22 @@ end
 function Path:draw(x,y)
     love.graphics.draw(pathimg,x,y)
     
-    for i,v in ipairs(self.contains) do
-        v:draw(x,y)
+    local objects = self:findHighest()
+    if objects ~= nil then
+        objects:draw(x,y)
     end
 end
 
 function Path:addObject(object)
     table.insert(self.contains, object)
+end
+
+function Path:removeObject(object)
+    for i,v in ipairs(self.contains) do
+        if object == v then
+            table.remove(self.contains,i)
+        end
+    end
 end
 
 --[[--
@@ -49,10 +58,14 @@ end
     @return object with highest priority.
 --]]--
 function Path:findHighest()
-    local highest = self
+    local highest = nil
     for i,v in ipairs(self.contains) do
-        if v:getPriority() > highest:getPriority() then
+        if highest == nil then 
             highest = v
+        else
+            if v:getPriority() > highest:getPriority() then
+                highest = v
+            end
         end
     end
     

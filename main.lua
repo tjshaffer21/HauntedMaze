@@ -1,8 +1,10 @@
 dofile('Object.lua')
 
 -- Globals
-map         = {} -- -1/-2: wall, 0 path
+mapObject   = nil
+map         = {}
 character   = nil
+enemy_list  = {}
 
 function love.load()
     pathimg        = love.graphics.newImage("images/path.png")
@@ -14,7 +16,7 @@ function love.load()
     
     love.graphics.setBackgroundColor(0,0,0)
     
-    local mapObj = Map.create("level1.dat")
+    mapObj = Map.create("level1.dat")
     mapObj:generate_map()
     map = mapObj:getMap()
 end
@@ -42,14 +44,24 @@ function draw_map()
 end
 
 function love.keypressed( key )
-    print(character)
-    if key == "w" or "up" then
-        
-    elseif key == "a" or "left" then
+    local x = character:getX()
+    local y = character:getY()
+
+    if key == "w" then
+        y = y-1
+    elseif key == "a" then
+        x = x-1
+    elseif key == "s" then
+        y = y+1
+    elseif key == "d" then
+        x = x+1
+    end
     
-    elseif key == "s" or "down" then
-    
-    elseif key == "d" or "right" then
-    
+    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+        if map[y][x]:getType() == "Path" and map[y][x]:canCharTraverse() then
+            map[character:getY()][character:getX()]:removeObject(character)
+            character:setXY(x,y)
+            map[y][x]:addObject(character)
+        end
     end
 end

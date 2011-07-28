@@ -30,6 +30,27 @@ function Character:getLives()
     return self.lives
 end
 
+function Character:getX()
+    return self.x
+end
+
+function Character:getY()
+    return self.y
+end
+
+function Character:setX(x)
+    self.x = x
+end
+
+function Character:setY(y)
+    self.y = y
+end
+
+function Character:setXY(x,y)
+    self.x = x
+    self.y = y
+end
+
 function Character:addLife()
     self.lives = self.lives + 1
 end
