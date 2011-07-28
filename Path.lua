@@ -44,6 +44,16 @@ function Path:addObject(object)
     table.insert(self.contains, object)
 end
 
+function Path:findObjectType(typ)
+    for i,v in ipairs(self.contains) do
+        if v:getType() == typ then
+            return v
+        end
+    end
+    
+    return nil
+end
+
 function Path:removeObject(object)
     for i,v in ipairs(self.contains) do
         if object == v then

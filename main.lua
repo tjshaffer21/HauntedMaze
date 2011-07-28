@@ -28,8 +28,50 @@ function draw_map()
     end
 end
 
+--[[--
+    Move character to position given in parameter.
+    @parameter x
+    @parameter y
+    @return if move successful return true, else false
+--]]--
+function moveChar(x,y)
+    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+        if map[y][x]:getType() == "Path" and map[y][x]:canCharTraverse() then
+            map[character:getY()][character:getX()]:removeObject(character)
+            character:setXY(x,y)
+            map[y][x]:addObject(character)
+            
+            return true
+        end
+    end
+    
+    return false
+end
+
+--[[--
+    Check if path contains a pellet and collect it true.
+    If a pellet is found, then score is automatically incremented.
+    @parameter x
+    @parameter y
+--]]--
+function collectPellet(x,y)
+    local pel   = map[y][x]:findObjectType("Pellet")
+    local spel  = map[y][x]:findObjectType("SuperPellet")
+    
+    if pel ~= nil then
+        score   = score + pel:getValue()
+        map[y][x]:removeObject(pel)
+    end
+    
+    if spel ~= nil then
+        score   = score + spel:getValue()
+        map[y][x]:removeObject(spel)
+    end
+end
+
 -- Override love functions.
 function love.load()
+    love.keyboard.setKeyRepeat(1,50)
     pathimg        = love.graphics.newImage("images/path.png")
     wallimg        = love.graphics.newImage("images/wall.png")
     pelletimg      = love.graphics.newImage("images/pellet.png")
@@ -61,25 +103,17 @@ function love.draw()
     love.graphics.print(string.format("Score: %d", score), x+50, y, 0, 1, 2)
 end
 
+
 function love.keypressed( key )
     local x = character:getX()
     local y = character:getY()
 
-    if key == "w" then
-        y = y-1
-    elseif key == "a" then
-        x = x-1
-    elseif key == "s" then
-        y = y+1
-    elseif key == "d" then
-        x = x+1
-    end
+    if key == "w" then y = y-1 end
+    if key == "a" then x = x-1 end
+    if key == "s" then y = y+1 end
+    if key == "d" then x = x+1 end
     
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
-        if map[y][x]:getType() == "Path" and map[y][x]:canCharTraverse() then
-            map[character:getY()][character:getX()]:removeObject(character)
-            character:setXY(x,y)
-            map[y][x]:addObject(character)
-        end
+    if moveChar(x,y) == true then
+        collectPellet(x,y)
     end
 end
