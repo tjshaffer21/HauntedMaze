@@ -3,8 +3,9 @@ dofile('Object.lua')
 -- Globals
 mapObject   = nil
 map         = {}
-character   = nil
 enemy_list  = {}
+door_list   = {}
+character   = nil
 numPellets  = 0
 highscore   = 0
 score       = 0
@@ -37,9 +38,13 @@ end
 function moveChar(x,y)
     if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
         if map[y][x]:getType() == "Path" and map[y][x]:canCharTraverse() then
-            map[character:getY()][character:getX()]:removeObject(character)
-            character:setXY(x,y)
-            map[y][x]:addObject(character)
+            if map[y][x]:findObjectType("Door") == nil then
+                map[character:getY()][character:getX()]:removeObject(character)
+                character:setXY(x,y)
+                map[y][x]:addObject(character)
+            else
+                return false
+            end
             
             return true
         end
@@ -61,21 +66,41 @@ function collectPellet(x,y)
     if pel ~= nil then
         score   = score + pel:getValue()
         map[y][x]:removeObject(pel)
+        numPellets = numPellets - 1
     end
     
     if spel ~= nil then
         score   = score + spel:getValue()
         map[y][x]:removeObject(spel)
+        numPellets = numPellets - 1
+    end
+end
+
+function update_doors()
+    for i,v in ipairs(door_list) do
+        if v:getLock() == "Timed" then
+            if v:updateKey() then
+                map[v:getY()][v:getX()]:removeObject(v)
+                table.remove(door_list,i)
+            end
+        elseif v:getLock() == "Key" then
+            if numPellets <= 0 then
+                map[v:getY()][v:getX()]:removeObject(v)
+                table.remove(door_list,i)
+            end
+        end
     end
 end
 
 -- Override love functions.
 function love.load()
     love.keyboard.setKeyRepeat(1,50)
+    
     pathimg        = love.graphics.newImage("images/path.png")
     wallimg        = love.graphics.newImage("images/wall.png")
+    doorimg        = love.graphics.newImage("images/door.png")
     pelletimg      = love.graphics.newImage("images/pellet.png")
-    spelletimg    = love.graphics.newImage("images/spellet.png")
+    spelletimg     = love.graphics.newImage("images/spellet.png")
     --enemy       = love.graphics.newImage("images/enemy.png")
     characterimg   = love.graphics.newImage("images/character.png")
     
@@ -84,6 +109,10 @@ function love.load()
     mapObj = Map.create("level1.dat")
     mapObj:generate_map()
     map = mapObj:getMap()
+end
+
+function love.update(dt)
+    update_doors()
 end
 
 function love.draw()

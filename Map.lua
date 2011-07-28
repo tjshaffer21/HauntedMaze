@@ -3,8 +3,7 @@ Map.__index = Map
 
 --[[--
     Create Map object.
-    @parameter x - width of map
-    @parameter y - height of map
+    @filename
     @return table
 --]]--
 function Map.create(filename)
@@ -33,6 +32,9 @@ end
 --[[--
     Read and parse the file.
     Data:
+        -4 - Locked door, traversable path
+        -3 - Timed door, not traversable path
+        -2 - Timed door, traversable path
         -1 - Path not traversable by character.
          0 - Wall
          1 - Traversable path, with pellet
@@ -49,17 +51,33 @@ function Map:generate_map()
     line        = io.read("*number")    -- height
     self.y      = line
     
-    local i = 1
+    local i = 1             -- y-coordinate
     line = io.read()
     while line ~= nil do
         local mp = {}
-        local j  = 1
+        local j  = 1        -- x-coordinate
+        
         for s in line:gmatch('(-?%d+)') do
             local newObject = nil
             if s == "0" then
                newObject = Wall.create()
             else
-                if s == "-1" then
+                if s == "-4" then
+                    local door  = Door.create(j,i, "Key", 1)
+                    newObject   = Path.create(door, true, false)
+                    
+                    table.insert(door_list, door)
+                elseif s == "-3" then
+                    local door  = Door.create(j,i,"Timed",30)
+                    newObject   = Path.create(door, false, true)
+                    
+                    table.insert(door_list, door)
+                elseif s == "-2" then
+                    local door  = Door.create(j,i,"Timed", 30)
+                    newObject   = Path.create(door, true, true)
+                    
+                    table.insert(door_list, door)
+                elseif s == "-1" then
                     newObject = Path.create(nil, false, true)
                 elseif s == "1" then
                     local pellet    = Pellet.create()

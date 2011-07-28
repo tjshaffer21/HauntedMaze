@@ -21,8 +21,8 @@ function Enemy:getPriority()
     return self.priority
 end
 
-function Enemy:draw(img,x,y)
-    love.graphics.draw(img,x,y)
+function Enemy:draw(x,y)
+    love.graphics.draw(x,y)
 end
 
 function Enemy:getValue()
