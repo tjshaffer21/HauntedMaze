@@ -7,14 +7,14 @@ Map.__index = Map
     @parameter y - height of map
     @return table
 --]]--
-function Map.create(filename, x, y)
+function Map.create(filename)
     local obj = {}
     setmetatable(obj, Map)
     
-    obj.filename = filename
-    obj.x        = x
-    obj.y        = y
-    obj.map      = {}
+    obj.filename    = filename
+    obj.map         = {}
+    obj.x           = nil
+    obj.y           = nil
     return obj
 end
 
@@ -44,11 +44,17 @@ end
 function Map:generate_map() 
     io.input(self.filename)
     
-    local line = io.read()
+    local line  = io.read()
+    self.x      = line
+    line        = io.read()
+    self.y      = line
+    
+    local i = 1
+    line = io.read()
     while line ~= nil do
         local mp = {}
-
-        for s in line:gmatch('%d+') do
+        local j  = 1
+        for s in line:gmatch('(-?%d+)') do
             local newObject = nil
             if s == "0" then
                newObject = Wall.create(false)
@@ -56,23 +62,25 @@ function Map:generate_map()
                 if s == "-1" then
                     newObject = Path.create(nil, false, true)
                 elseif s == "1" then
-                    --pellet    = Pellet.create()
-                    newObject = Path.create(pellet, true, true)
+                    local pellet    = Pellet.create()
+                    newObject       = Path.create(pellet, true, true)
                 elseif s == "2" then
-                    --super     = SuperPellet.create()
-                    newObject = Path.create(super, true, true)
+                    local super = SuperPellet.create()
+                    newObject   = Path.create(super, true, true)
                 elseif s == "3" then
                     newObject = Path.create(nil,true,true)
                 elseif s == "4" then
                     --enemy     = Enemy.create()
                     newObject = Path.create(enemy, false, true)
                 elseif s == "5" then
-                    --char      = Character.create()
-                    newObject = Path.create(char, true, true)
+                    character   = Character.create(j,i)
+                    newObject   = Path.create(char, true, true)
                 end
+                j = j+1
             end
             
             table.insert(mp, newObject)
+            i = i+1
         end
         
         table.insert(self.map, mp)

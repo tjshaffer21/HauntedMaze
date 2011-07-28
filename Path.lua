@@ -31,12 +31,11 @@ function Path:getPriority()
     return self.priority
 end
 
-function Path:draw(img,x,y)
-    local obj = self:findHighest()
-    if obj == self then
-        love.graphics.draw(img,x,y)
-    else
-        obj.draw(img,x,y)
+function Path:draw(x,y)
+    love.graphics.draw(pathimg,x,y)
+    
+    for i,v in ipairs(self.contains) do
+        v:draw(x,y)
     end
 end
 

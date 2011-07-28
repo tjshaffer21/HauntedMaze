@@ -20,8 +20,8 @@ function Pellet:getPriority()
     return self.priority
 end
 
-function Pellet:draw(img,x,y)
-    love.graphics.draw(img,x,y)
+function Pellet:draw(x,y)
+    love.graphics.draw(pelletimg,x,y)
 end
 
 function Pellet:getValue()
@@ -50,10 +50,10 @@ function SuperPellet:getPriority()
     return self.priority
 end
 
-function SuperPellet.draw(img,x,y)
-    love.graphics.draw(img,x,y)
+function SuperPellet:draw(x,y)
+    love.graphics.draw(spelletimg,x,y)
 end
 
-function SuperPellet.getValue()
+function SuperPellet:getValue()
     return self.value
 end
