@@ -72,13 +72,19 @@ function collectPellet(x,y)
         score   = score + spel:getValue()
         map[y][x]:removeObject(spel)
         numPellets = numPellets - 1
+        
+        -- Set enemies to vulnerable
+        for i,v in ipairs(enemy_list) do
+            print("Oh Noes! I'm vulnerable")
+            v:vulnerable()
+        end
     end
 end
 
-function update_doors()
+function update_doors(dt)
     for i,v in ipairs(door_list) do
         if v:getLock() == "Timed" then
-            if v:updateKey() then
+            if v:updateKey(dt) then
                 map[v:getY()][v:getX()]:removeObject(v)
                 table.remove(door_list,i)
             end
@@ -87,6 +93,14 @@ function update_doors()
                 map[v:getY()][v:getX()]:removeObject(v)
                 table.remove(door_list,i)
             end
+        end
+    end
+end
+
+function update_enemy(dt)
+    for i,v in ipairs(enemy_list) do
+        if v:isVulnerable() then
+            v:updateTimer(dt)
         end
     end
 end
@@ -101,6 +115,7 @@ function love.load()
     pelletimg      = love.graphics.newImage("images/pellet.png")
     spelletimg     = love.graphics.newImage("images/spellet.png")
     enemyimg       = love.graphics.newImage("images/enemy.png")
+    vulenemyimg    = love.graphics.newImage("images/vulenemy.png")
     characterimg   = love.graphics.newImage("images/character.png")
     
     love.graphics.setBackgroundColor(0,0,0)
@@ -111,7 +126,8 @@ function love.load()
 end
 
 function love.update(dt)
-    update_doors()
+    update_doors(dt)
+    update_enemy(dt)
 end
 
 function love.draw()

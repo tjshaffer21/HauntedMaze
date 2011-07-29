@@ -56,10 +56,10 @@ end
     Decrement key value by 1.
     @return true if door becomes unlocked, else false
 --]]--
-function Door:updateKey()
-    self.key = self.key - 1
+function Door:updateKey(dt)
+    self.key = self.key - (dt*100)
     
-    if self.key == 0 then 
+    if self.key <= 0.001 then 
         self:unlock()
         return true
     end

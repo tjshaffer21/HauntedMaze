@@ -68,12 +68,12 @@ function Map:generate_map()
                     
                     table.insert(door_list, door)
                 elseif s == "-3" then
-                    local door  = Door.create(j,i,"Timed",30)
+                    local door  = Door.create(j,i,"Timed",300)
                     newObject   = Path.create(door, false, true)
                     
                     table.insert(door_list, door)
                 elseif s == "-2" then
-                    local door  = Door.create(j,i,"Timed", 30)
+                    local door  = Door.create(j,i,"Timed", 300)
                     newObject   = Path.create(door, true, true)
                     
                     table.insert(door_list, door)
@@ -90,8 +90,10 @@ function Map:generate_map()
                 elseif s == "3" then
                     newObject = Path.create(nil,true,true)
                 elseif s == "4" then
-                    enemy     = Enemy.create()
-                    newObject = Path.create(enemy, false, true)
+                    local enemy = Enemy.create(j,i)
+                    newObject   = Path.create(enemy, false, true)
+                    
+                    table.insert(enemy_list, enemy)
                 elseif s == "5" then
                     character   = Character.create(j,i)
                     newObject   = Path.create(character, true, true)
