@@ -42,6 +42,7 @@ end
          3 - Traversable path, with no pellet
          4 - Enemy
          5 - Character
+         6 - Enemy, traversable path
 --]]--
 function Map:generate_map() 
     io.input(self.filename)
@@ -97,6 +98,11 @@ function Map:generate_map()
                 elseif s == "5" then
                     character   = Character.create(j,i)
                     newObject   = Path.create(character, true, true)
+                elseif s == "6" then
+                    local enemy = Enemy.create(j,i)
+                    newObject   = Path.create(enemy, true, true)
+                    
+                    table.insert(enemy_list, enemy)
                 end
             end
             

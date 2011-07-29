@@ -75,8 +75,38 @@ function collectPellet(x,y)
         
         -- Set enemies to vulnerable
         for i,v in ipairs(enemy_list) do
-            print("Oh Noes! I'm vulnerable")
             v:vulnerable()
+        end
+    end
+end
+
+--[[--
+    Check if character and enemy are in the same position.
+    @return bool
+--]]--
+function enemyCheck()
+    local x = character:getX()
+    local y = character:getY()
+    
+    if map[y][x]:findObjectType("Enemy") ~= nil and map[y][x]:findObjectType("Character") then
+        return true
+    end
+    
+    return false
+end
+
+function enemyCharCollision(e)
+    if enemyCheck() then
+        if e:isVulnerable() then
+            for i,v in ipairs(enemy_list) do
+                if v == e then 
+                    score = score + e:getValue()
+                    map[e:getY()][e:getX()]:removeObject(e)
+                    table.remove(enemy_list,i)
+                end
+            end
+        else
+            gameOver()
         end
     end
 end
@@ -102,7 +132,14 @@ function update_enemy(dt)
         if v:isVulnerable() then
             v:updateTimer(dt)
         end
+        
+        --v:move()
+        enemyCharCollision(v)
     end
+end
+
+function gameOver()
+    print("The game is met.")
 end
 
 -- Override love functions.
@@ -147,7 +184,6 @@ function love.draw()
     love.graphics.print(string.format("Score: %d", score), x+50, y, 0, 1, 2)
 end
 
-
 function love.keypressed( key )
     local x = character:getX()
     local y = character:getY()
@@ -158,6 +194,7 @@ function love.keypressed( key )
     if key == "d" then x = x+1 end
     
     if moveChar(x,y) == true then
+
         collectPellet(x,y)
     end
 end
