@@ -90,7 +90,7 @@ function Map:generate_map()
                 elseif s == "3" then
                     newObject = Path.create(nil,true,true)
                 elseif s == "4" then
-                    --enemy     = Enemy.create()
+                    enemy     = Enemy.create()
                     newObject = Path.create(enemy, false, true)
                 elseif s == "5" then
                     character   = Character.create(j,i)

@@ -10,7 +10,6 @@ numPellets  = 0
 highscore   = 0
 score       = 0
 
-
 function draw_map()
     local y = 0
     local x = 0
@@ -101,7 +100,7 @@ function love.load()
     doorimg        = love.graphics.newImage("images/door.png")
     pelletimg      = love.graphics.newImage("images/pellet.png")
     spelletimg     = love.graphics.newImage("images/spellet.png")
-    --enemy       = love.graphics.newImage("images/enemy.png")
+    enemyimg       = love.graphics.newImage("images/enemy.png")
     characterimg   = love.graphics.newImage("images/character.png")
     
     love.graphics.setBackgroundColor(0,0,0)

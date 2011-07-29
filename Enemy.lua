@@ -22,7 +22,7 @@ function Enemy:getPriority()
 end
 
 function Enemy:draw(x,y)
-    love.graphics.draw(x,y)
+    love.graphics.draw(enemyimg,x,y)
 end
 
 function Enemy:getValue()
