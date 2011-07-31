@@ -135,11 +135,11 @@ function Enemy:move()
                             
             self:moveEnemy(nx,ny)
         else                                    -- Only worry about next move
-            local pickdir = math.random(1,#movement)
-            
+
             if #movement == 0 then
                 self:moveEnemy(self.pxy[1], self.pxy[2])
             else
+                local pickdir = math.random(1,#movement)
                 while #movement > 0 do
                     local getdir = movement[pickdir]
 
@@ -248,44 +248,51 @@ function Enemy:getMovement()
     local x = self.xy[1]-1
     local y = self.xy[2]
     
-    if not (x == self.pxy[1] and y == self.pxy[2]) then
-        if map[y][x]:getType() == "Path" then
-            if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y})
+    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+        if not (x == self.pxy[1] and y == self.pxy[2]) then
+            if map[y][x]:getType() == "Path" then
+                if map[y][x]:findObjectType("Enemy") == nil then
+                    table.insert(movement, {x, y})
+                end
             end
         end
     end
-    
+        
     x = self.xy[1]+1
     y = self.xy[2]
-    
-    if not (x == self.pxy[1] and y == self.pxy[2]) then
-        if map[y][x]:getType() == "Path" then
-            if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y})
+
+    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+        if not (x == self.pxy[1] and y == self.pxy[2]) then
+            if map[y][x]:getType() == "Path" then
+                if map[y][x]:findObjectType("Enemy") == nil then
+                    table.insert(movement, {x, y})
+                end
             end
         end
     end
-    
-    
+        
     x = self.xy[1]
     y = self.xy[2] - 1
-    
-    if not (x == self.pxy[1] and y == self.pxy[2]) then
-        if map[y][x]:getType() == "Path" then
-            if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y})
+
+    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then    
+        if not (x == self.pxy[1] and y == self.pxy[2]) then
+            if map[y][x]:getType() == "Path" then
+                if map[y][x]:findObjectType("Enemy") == nil then
+                    table.insert(movement, {x, y})
+                end
             end
         end
     end
-    
+        
     x = self.xy[1]
     y = self.xy[2] + 1
 
-    if not (x == self.pxy[1] and y == self.pxy[2]) then
-        if map[y][x]:getType() == "Path" then
-            if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y})
+    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+        if not (x == self.pxy[1] and y == self.pxy[2]) then
+            if map[y][x]:getType() == "Path" then
+                if map[y][x]:findObjectType("Enemy") == nil then
+                    table.insert(movement, {x, y})
+                end
             end
         end
     end
