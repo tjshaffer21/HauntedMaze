@@ -3,6 +3,7 @@ dofile('Object.lua')
 -- Globals
 mapObject   = nil
 map         = {}
+
 enemy_list  = {}
 door_list   = {}
 character   = nil
@@ -137,7 +138,6 @@ function love.load()
     
     mapObj = Map.create("maps/level1.dat")
     mapObj:generate_map()
-    map = mapObj:getMap()
 end
 
 function love.update(dt)
@@ -175,7 +175,23 @@ function love.keypressed( key )
         collectPellet(x,y)
         
         if map[y][x]:findObjectType("Exit") then
-            print("Level complete.")
+            deleteLevel()
+            
+            if not mapObj:loadNextLevel() then
+                print("Load failed")
+            end
         end
+    end
+end
+
+function deleteLevel()
+    map = {}        -- Better way?
+    
+    for i,v in ipairs(enemy_list) do
+        table.remove(enemy_list,i)
+    end
+    
+    for i,v in ipairs(door_list) do
+        table.remove(door_list,i)
     end
 end

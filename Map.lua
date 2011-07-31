@@ -1,24 +1,27 @@
 Map = {}
 Map.__index = Map
 
---[[--
-    Create Map object.
-    @filename
-    @return table
---]]--
-function Map.create(filename)
+function Map.create()
     local obj = {}
     setmetatable(obj, Map)
     
-    obj.filename    = filename
+    obj.filelist    = {"maps\\level1.dat", "maps\\level2.dat"}
+    obj.fileindex   = 1
     obj.map         = {}
     obj.xy          = {nil,nil}
     return obj
 end
 
-function Map:getMap()
-    return self.map
+function Map:loadNextLevel()
+    self.fileindex = self.fileindex + 1
+    if self.fileindex > #self.filelist then
+        return false
+    end
+    
+    self:generate_map()
+    return true
 end
+    
 
 --[[--
     Read and parse the file.
@@ -36,7 +39,7 @@ end
          6 - Enemy, traversable path
 --]]--
 function Map:generate_map() 
-    io.input(self.filename)
+    io.input(self.filelist[self.fileindex])
     
     local line  = io.read("*number")    -- width
     self.xy[1]  = line
@@ -104,7 +107,7 @@ function Map:generate_map()
             j = j+1
         end
         
-        table.insert(self.map, mp)
+        table.insert(map, mp)
         line = io.read()
         i = i + 1
     end
