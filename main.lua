@@ -80,34 +80,28 @@ function collectPellet(x,y)
     end
 end
 
---[[--
-    Check if character and enemy are in the same position.
-    @return bool
---]]--
-function enemyCheck()
+function enemyCharCollision(e)
     local x = character:getX()
     local y = character:getY()
     
-    if map[y][x]:findObjectType("Enemy") ~= nil and map[y][x]:findObjectType("Character") then
-        return true
-    end
-    
-    return false
-end
-
-function enemyCharCollision(e)
-    if enemyCheck() then
+    if not (map[y][x]:findObjectType("Enemy") == nil) 
+      and not (map[y][x]:findObjectType("Character") == nil) then
         if e:isVulnerable() then
             for i,v in ipairs(enemy_list) do
-                if v == e then 
+                if v == e then
                     score = score + e:getValue()
                     map[e:getY()][e:getX()]:removeObject(e)
                     table.remove(enemy_list,i)
                 end
             end
         else
-            print("Collidoscope")
-            --gameOver()
+            character:rmLife()
+            
+            if character:getLives() == 0 then
+                gameOver()
+            else
+                reset()
+            end
         end
     end
 end
@@ -141,6 +135,14 @@ end
 
 function gameOver()
     print("The game is met.")
+end
+
+function reset()
+    for i,v in ipairs(enemy_list) do
+        v:moveEnemy(v.spawn[1],v.spawn[2])
+    end
+    
+    moveChar(character.spawn[1], character.spawn[2])
 end
 
 -- Override love functions.

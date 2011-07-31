@@ -16,6 +16,8 @@ function Enemy.create(x,y)
     obj.xy  = {x,y}      -- Current  {x,y}
     obj.pxy = {-1,-1}    -- Previous {x,y}
     
+    obj.spawn = {x,y}
+    
     return obj
 end
 

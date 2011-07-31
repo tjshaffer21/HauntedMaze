@@ -10,6 +10,7 @@ function Character.create(x,y)
     obj.lives       = 3
     obj.x           = x
     obj.y           = y
+    obj.spawn       = {x,y}
     
     return obj
 end
