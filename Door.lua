@@ -15,8 +15,7 @@ function Door.create(x,y,lock,key)
     setmetatable(obj, Door)
     
     obj.is_a      = "Door"
-    obj.x         = x
-    obj.y         = y
+    obj.xy        = {x,y}
     obj.lock      = lock
     obj.key       = key
     obj.is_locked = true
@@ -33,11 +32,11 @@ function Door:draw(x,y)
 end
 
 function Door:getX()
-    return self.x
+    return self.xy[1]
 end
 
 function Door:getY()
-    return self.y
+    return self.xy[2]
 end
 
 function Door:getLock()

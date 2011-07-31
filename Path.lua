@@ -54,6 +54,19 @@ function Path:findObjectType(typ)
     return nil
 end
 
+--[[--
+    Check the path for the object.
+    @parameter e
+    @return bool
+--]]--
+function Path:findObject(e)
+    for i,v in ipairs(self.contains) do
+        if v == e then return true end
+    end
+    
+    return false
+end
+
 function Path:removeObject(object)
     for i,v in ipairs(self.contains) do
         if object == v then
@@ -62,6 +75,15 @@ function Path:removeObject(object)
     end
 end
 
+function Path:canEnemyTraverse()
+    return self.enem_traverse
+end
+
+function Path:canCharTraverse()
+    return self.char_traverse
+end
+
+--Private
 --[[--
     Iterate through Path object and find which object contained within has
     highest priority.
@@ -80,12 +102,4 @@ function Path:findHighest()
     end
     
     return highest
-end
-
-function Path:canEnemyTraverse()
-    return self.enem_traverse
-end
-
-function Path:canCharTraverse()
-    return self.char_traverse
 end

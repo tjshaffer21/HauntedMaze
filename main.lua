@@ -84,11 +84,10 @@ function enemyCharCollision(e)
     local x = character:getX()
     local y = character:getY()
     
-    if not (map[y][x]:findObjectType("Enemy") == nil) 
-      and not (map[y][x]:findObjectType("Character") == nil) then
+    if map[y][x]:findObject(e) and map[y][x]:findObject(character) then
         if e:isVulnerable() then
             for i,v in ipairs(enemy_list) do
-                if v == e then
+                if v == e then 
                     score = score + e:getValue()
                     map[e:getY()][e:getX()]:removeObject(e)
                     table.remove(enemy_list,i)
