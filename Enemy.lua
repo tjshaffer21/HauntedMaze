@@ -10,7 +10,7 @@ function Enemy.create(x,y)
     obj.value       = 1000
     obj.speed       = 10
     
-    obj.is_vulerable    = false
+    obj.is_vulnerable    = false
     obj.vultimer        = 500
     
     obj.xy  = {x,y}      -- Current  {x,y}
@@ -21,36 +21,12 @@ function Enemy.create(x,y)
     return obj
 end
 
-function Enemy:getType()
-    return self.is_a
-end
-
-function Enemy:getPriority()
-    return self.priority
-end
-
 function Enemy:draw(x,y)
-    if self:isVulnerable() then
+    if self.is_vulnerable then
         love.graphics.draw(vulenemyimg, x, y)
     else
         love.graphics.draw(enemyimg,x,y)
     end
-end
-
-function Enemy:getX()
-    return self.xy[1]
-end
-
-function Enemy:getY()
-    return self.xy[2]
-end
-
-function Enemy:setX(x)
-    self.xy[1] = x
-end
-
-function Enemy:setY(y)
-    self.xy[2] = y
 end
 
 function Enemy:setXY(x,y)
@@ -58,24 +34,16 @@ function Enemy:setXY(x,y)
     self.xy[2] = y
 end
 
-function Enemy:getValue()
-    return self.value
-end
-
-function Enemy:isVulnerable()
-    return self.is_vulerable
-end
-
 function Enemy:invulnerable()
-    self.is_vulerable = false
+    self.is_vulnerable = false
     self.vultimer   = 500
 end
 
 function Enemy:vulnerable()
-    if self.is_vulerable == true then
+    if self.is_vulnerable == true then
         self.vultimer = self.vultimer + 100
     else
-        self.is_vulerable = true
+        self.is_vulnerable = true
     end
 end
 
@@ -103,15 +71,15 @@ function Enemy:move()
         
         if #target > 0 then
             table.insert(movement, {self.pxy[1],self.pxy[2]})
-            local cx = character:getX()
-            local cy = character:getY()
+            local cx = character.xy[1]
+            local cy = character.xy[2]
             
             local distance = math.sqrt(
                 math.pow(cx-self.xy[1],2) + math.pow(cy-self.xy[2],2))
             local nx       = self.xy[1]
             local ny       = self.xy[2]
             
-            if self:isVulnerable() then         -- Flee    
+            if self.is_vulnerable then         -- Flee    
                 for i,v in ipairs(movement) do
                     local newDistance = math.sqrt(
                         math.pow(cx-v[1],2) + math.pow(cy-v[2],2))
@@ -166,12 +134,12 @@ end
     @return bool
 --]]--
 function Enemy:moveEnemy(x,y)
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
-        if map[y][x]:getType() == "Path" and map[y][x]:canEnemyTraverse() then
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
+        if map[y][x].is_a == "Path" and map[y][x]:canEnemyTraverse() then
             if map[y][x]:findObjectType("Door") == nil then
                 self.pxy[1] = self.xy[1]
                 self.pxy[2] = self.xy[2]
-                map[self:getY()][self:getX()]:removeObject(self)
+                map[self.xy[2]][self.xy[1]]:removeObject(self)
                 
                 self:setXY(x,y)
                 map[y][x]:addObject(self)
@@ -200,12 +168,12 @@ function Enemy:lineOfSight()
         local y = self.xy[2]+i
         local j = -1
 
-        if y > 0 and y <= mapObj:getY() then
+        if y > 0 and y <= mapObj.xy[2] then
             while j >= -distance do
                 local x = self.xy[1]+j
 
-                if x > 0 and x <= mapObj:getX() then
-                    if map[y][x] ~= nil and map[y][x]:getType() == "Path" then
+                if x > 0 and x <= mapObj.xy[1] then
+                    if map[y][x] ~= nil and map[y][x].is_a == "Path" then
                         -- Ignore path if another Enemy is there
                         if map[y][x]:findObjectType("Enemy") == nil then
                             if map[y][x]:findObjectType("Character") ~= nil then
@@ -222,8 +190,8 @@ function Enemy:lineOfSight()
             while j <= distance do
                 local x = self.xy[1]+j
                 
-                if x >= 1 and x <= mapObj:getX() then
-                    if map[y][x] ~= nil and map[y][x]:getType() == "Path" then
+                if x >= 1 and x <= mapObj.xy[1] then
+                    if map[y][x] ~= nil and map[y][x].is_a == "Path" then
                         -- Ignore path if another Enemy is there
                         if map[y][x]:findObjectType("Enemy") == nil then
                             if map[y][x]:findObjectType("Character") ~= nil then
@@ -250,9 +218,9 @@ function Enemy:getMovement()
     local x = self.xy[1]-1
     local y = self.xy[2]
     
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
         if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x]:getType() == "Path" then
+            if map[y][x].is_a == "Path" then
                 if map[y][x]:findObjectType("Enemy") == nil then
                     table.insert(movement, {x, y})
                 end
@@ -263,9 +231,9 @@ function Enemy:getMovement()
     x = self.xy[1]+1
     y = self.xy[2]
 
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
         if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x]:getType() == "Path" then
+            if map[y][x].is_a == "Path" then
                 if map[y][x]:findObjectType("Enemy") == nil then
                     table.insert(movement, {x, y})
                 end
@@ -276,9 +244,9 @@ function Enemy:getMovement()
     x = self.xy[1]
     y = self.xy[2] - 1
 
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then    
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then    
         if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x]:getType() == "Path" then
+            if map[y][x].is_a == "Path" then
                 if map[y][x]:findObjectType("Enemy") == nil then
                     table.insert(movement, {x, y})
                 end
@@ -289,9 +257,9 @@ function Enemy:getMovement()
     x = self.xy[1]
     y = self.xy[2] + 1
 
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
         if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x]:getType() == "Path" then
+            if map[y][x].is_a == "Path" then
                 if map[y][x]:findObjectType("Enemy") == nil then
                     table.insert(movement, {x, y})
                 end

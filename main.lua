@@ -15,9 +15,9 @@ function draw_map()
     local x = 0
     for ik,i in pairs(map) do
         for jk,j in pairs(map[ik]) do
-            if j:getType() == "Path" then
+            if j.is_a == "Path" then
                 j:draw(x,y)
-            elseif j:getType() == "Wall" then
+            elseif j.is_a == "Wall" then
                 j:draw(x,y)
             end
             
@@ -35,10 +35,10 @@ end
     @return if move successful return true, else false
 --]]--
 function moveChar(x,y)
-    if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
-        if map[y][x]:getType() == "Path" and map[y][x]:canCharTraverse() then
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
+        if map[y][x].is_a == "Path" and map[y][x]:canCharTraverse() then
             if map[y][x]:findObjectType("Door") == nil then
-                map[character:getY()][character:getX()]:removeObject(character)
+                map[character.xy[2]][character.xy[1]]:removeObject(character)
                 character:setXY(x,y)
                 map[y][x]:addObject(character)
             else
@@ -63,13 +63,13 @@ function collectPellet(x,y)
     local spel  = map[y][x]:findObjectType("SuperPellet")
     
     if pel ~= nil then
-        score   = score + pel:getValue()
+        score   = score + pel.value
         map[y][x]:removeObject(pel)
         numPellets = numPellets - 1
     end
     
     if spel ~= nil then
-        score   = score + spel:getValue()
+        score   = score + spel.value
         map[y][x]:removeObject(spel)
         numPellets = numPellets - 1
         
@@ -81,22 +81,22 @@ function collectPellet(x,y)
 end
 
 function enemyCharCollision(e)
-    local x = character:getX()
-    local y = character:getY()
+    local x = character.xy[1]
+    local y = character.xy[2]
     
     if map[y][x]:findObject(e) and map[y][x]:findObject(character) then
-        if e:isVulnerable() then
+        if e.is_vulnerable then
             for i,v in ipairs(enemy_list) do
                 if v == e then 
-                    score = score + e:getValue()
-                    map[e:getY()][e:getX()]:removeObject(e)
+                    score = score + e.value
+                    map[e.xy[2]][e.xy[1]]:removeObject(e)
                     table.remove(enemy_list,i)
                 end
             end
         else
             character:rmLife()
             
-            if character:getLives() == 0 then
+            if character.lives == 0 then
                 gameOver()
             else
                 reset()
@@ -107,14 +107,14 @@ end
 
 function update_doors(dt)
     for i,v in ipairs(door_list) do
-        if v:getLock() == "Timed" then
+        if v.lock == "Timed" then
             if v:updateKey(dt) then
-                map[v:getY()][v:getX()]:removeObject(v)
+                map[v.xy[2]][v.xy[1]]:removeObject(v)
                 table.remove(door_list,i)
             end
-        elseif v:getLock() == "Key" then
+        elseif v.lock == "Key" then
             if numPellets <= 0 then
-                map[v:getY()][v:getX()]:removeObject(v)
+                map[v.xy[2]][v.xy[1]]:removeObject(v)
                 table.remove(door_list,i)
             end
         end
@@ -123,7 +123,7 @@ end
 
 function update_enemy(dt)
     for i,v in ipairs(enemy_list) do
-        if v:isVulnerable() then
+        if v.is_vulnerable then
             v:updateTimer(dt)
         end
         
@@ -178,7 +178,7 @@ function love.draw()
     
     x = (love.graphics.getWidth() / 2) - 50
  
-    for i=1,character:getLives() do
+    for i=1,character.lives do
         love.graphics.draw(characterimg, x, y)
         x = x + characterimg:getWidth()
     end
@@ -187,8 +187,8 @@ function love.draw()
 end
 
 function love.keypressed( key )
-    local x = character:getX()
-    local y = character:getY()
+    local x = character.xy[1]
+    local y = character.xy[2]
 
     if key == "w" then y = y-1 end
     if key == "a" then x = x-1 end

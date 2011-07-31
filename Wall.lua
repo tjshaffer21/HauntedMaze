@@ -10,10 +10,6 @@ function Wall.create()
     return obj
 end
 
-function Wall:getType()
-    return self.is_a
-end
-
 function Wall:draw(x,y)
     love.graphics.draw(wallimg,x,y)
 end

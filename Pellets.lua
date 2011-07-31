@@ -15,20 +15,8 @@ function Pellet.create()
     return obj
 end
 
-function Pellet:getType()
-    return self.is_a
-end
-
-function Pellet:getPriority()
-    return self.priority
-end
-
 function Pellet:draw(x,y)
     love.graphics.draw(pelletimg,x,y)
-end
-
-function Pellet:getValue()
-    return self.value
 end
 
 --[[--------------------------------------------------------------------------
@@ -55,14 +43,6 @@ function SuperPellet:getType()
     return self.is_a
 end
 
-function SuperPellet:getPriority()
-    return self.priority
-end
-
 function SuperPellet:draw(x,y)
     love.graphics.draw(spelletimg,x,y)
-end
-
-function SuperPellet:getValue()
-    return self.value
 end

@@ -23,14 +23,6 @@ function Path.create(contains, chTraverse, enTraverse)
     return obj
 end
 
-function Path:getType()
-    return self.is_a
-end
-
-function Path:getPriority()
-    return self.priority
-end
-
 function Path:draw(x,y)
     love.graphics.draw(pathimg,x,y)
     
@@ -46,7 +38,7 @@ end
 
 function Path:findObjectType(typ)
     for i,v in ipairs(self.contains) do
-        if v:getType() == typ then
+        if v.is_a == typ then
             return v
         end
     end
@@ -95,7 +87,7 @@ function Path:findHighest()
         if highest == nil then 
             highest = v
         else
-            if v:getPriority() > highest:getPriority() then
+            if v.priority > highest.priority then
                 highest = v
             end
         end

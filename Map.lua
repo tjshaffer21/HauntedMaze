@@ -12,17 +12,8 @@ function Map.create(filename)
     
     obj.filename    = filename
     obj.map         = {}
-    obj.x           = nil
-    obj.y           = nil
+    obj.xy          = {nil,nil}
     return obj
-end
-
-function Map:getX()
-    return self.x
-end
-
-function Map:getY()
-    return self.y
 end
 
 function Map:getMap()
@@ -48,9 +39,9 @@ function Map:generate_map()
     io.input(self.filename)
     
     local line  = io.read("*number")    -- width
-    self.x      = line
+    self.xy[1]  = line
     line        = io.read("*number")    -- height
-    self.y      = line
+    self.xy[2]  = line
     
     local i = 1             -- y-coordinate
     line = io.read()

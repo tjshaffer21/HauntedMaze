@@ -3,10 +3,10 @@ Door.__index = Door
 
 --[[--
     Create a Door object.
-    @parameter x
-    @parameter y
-    @parameter lock (Time, Key)
-    @parameter key
+    @parameter x        Int
+    @parameter y        Int
+    @parameter lock     String:(Time, Key)
+    @parameter key      Int
         if key <= 0, then door is ready to be unlocked
     @return table
 --]]--
@@ -23,32 +23,8 @@ function Door.create(x,y,lock,key)
     return obj
 end
 
-function Door:getType() 
-    return self.is_a
-end
-
 function Door:draw(x,y)
     love.graphics.draw(doorimg,x,y)
-end
-
-function Door:getX()
-    return self.xy[1]
-end
-
-function Door:getY()
-    return self.xy[2]
-end
-
-function Door:getLock()
-    return self.lock
-end
-
-function Door:key()
-    return self.key
-end
-
-function Door:setKey(val)
-    self.key = val
 end
 
 --[[--
@@ -59,17 +35,9 @@ function Door:updateKey(dt)
     self.key = self.key - (dt*100)
     
     if self.key <= 0.001 then 
-        self:unlock()
+        self.is_locked = false
         return true
     end
     
     return false
-end
-
-function Door:isLocked()
-    return self.is_locked
-end
-
-function Door:unlock()
-    self.is_locked = false
 end
