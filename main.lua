@@ -29,30 +29,6 @@ function draw_map()
 end
 
 --[[--
-    Move character to position given in parameter.
-    @parameter x
-    @parameter y
-    @return if move successful return true, else false
---]]--
-function moveChar(x,y)
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        if map[y][x].is_a == "Path" and map[y][x]:canCharTraverse() then
-            if map[y][x]:findObjectType("Door") == nil then
-                map[character.xy[2]][character.xy[1]]:removeObject(character)
-                character:setXY(x,y)
-                map[y][x]:addObject(character)
-            else
-                return false
-            end
-            
-            return true
-        end
-    end
-    
-    return false
-end
-
---[[--
     Check if path contains a pellet and collect it true.
     If a pellet is found, then score is automatically incremented.
     @parameter x
@@ -141,7 +117,7 @@ function reset()
         v:moveEnemy(v.spawn[1],v.spawn[2])
     end
     
-    moveChar(character.spawn[1], character.spawn[2])
+    character:moveChar(character.spawn[1], character.spawn[2])
 end
 
 -- Override love functions.
@@ -195,7 +171,7 @@ function love.keypressed( key )
     if key == "s" then y = y+1 end
     if key == "d" then x = x+1 end
     
-    if moveChar(x,y) == true then
+    if character:moveChar(x,y) == true then
         collectPellet(x,y)
         
         if map[y][x]:findObjectType("Exit") then
