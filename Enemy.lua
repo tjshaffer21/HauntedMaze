@@ -14,8 +14,7 @@ function Enemy.create(x,y)
     obj.vultimer        = 500
     
     obj.xy  = {x,y}      -- Current  {x,y}
-    obj.pxy = {-1,-1}      -- Previous {x,y}
-    obj.dir = -1         -- -1 : None, 1: Up, 2: Right, 3: Down, 4: Left
+    obj.pxy = {-1,-1}    -- Previous {x,y}
     
     return obj
 end
@@ -97,31 +96,61 @@ function Enemy:move()
     self.speed = self.speed - 1
     
     if self.speed <= 0 then
-        local target = self:lineOfSight()
+        local target = self:lineOfSight()       -- Search for target
+        local movement = self:getMovement()
         
         if #target > 0 then
-            for i,v in ipairs(target) do
-                io.write("target:\t")
-                for j,e in ipairs(v) do
-                    io.write(e, " ")
+            table.insert(movement, {self.pxy[1],self.pxy[2]})
+            local cx = character:getX()
+            local cy = character:getY()
+            
+            local distance = math.sqrt(
+                math.pow(cx-self.xy[1],2) + math.pow(cy-self.xy[2],2))
+            local nx       = self.xy[1]
+            local ny       = self.xy[2]
+            
+            if self:isVulnerable() then         -- Flee    
+                for i,v in ipairs(movement) do
+                    local newDistance = math.sqrt(
+                        math.pow(cx-v[1],2) + math.pow(cy-v[2],2))
+                    
+                    if newDistance > distance then
+                        distance = newDistance
+                        nx       = v[1]
+                        ny       = v[2]
+                    end
                 end
-                io.write("\n")
+            else                                -- Chase
+                for i,v in ipairs(movement) do
+                    local newDistance = math.sqrt(
+                        math.pow(cx-v[1],2) + math.pow(cy-v[2],2))
+                    
+                    if newDistance < distance then
+                        distance = newDistance
+                        nx       = v[1]
+                        ny       = v[2]
+                    end
+                end
             end
-        else
-            local movement = self:getMovement()
+                            
+            self:moveEnemy(nx,ny)
+        else                                    -- Only worry about next move
             local pickdir = math.random(1,#movement)
             
-            while #movement > 0 do
-                local getdir = movement[pickdir]
+            if #movement == 0 then
+                self:moveEnemy(self.pxy[1], self.pxy[2])
+            else
+                while #movement > 0 do
+                    local getdir = movement[pickdir]
 
-                if self:moveEnemy(getdir[1],getdir[2]) then
-                    self.dir = getdir[3]
-                    break
+                    if self:moveEnemy(getdir[1],getdir[2]) then
+                        break
+                    end
+
+                    table.remove(movement,pickdir)
+                    pickdir = (pickdir + 1) % #movement
+                    if pickdir == 0 then pickdir = 1 end
                 end
-
-                table.remove(movement,pickdir)
-                pickdir = (pickdir + 1) % #movement
-                if pickdir == 0 then pickdir = 1 end
             end
         end
         self.speed = 10
@@ -170,7 +199,6 @@ function Enemy:lineOfSight()
         local j = -1
 
         if y > 0 and y <= mapObj:getY() then
-
             while j >= -distance do
                 local x = self.xy[1]+j
 
@@ -178,7 +206,7 @@ function Enemy:lineOfSight()
                     if map[y][x] ~= nil and map[y][x]:getType() == "Path" then
                         -- Ignore path if another Enemy is there
                         if map[y][x]:findObjectType("Enemy") == nil then
-                            if map[y][x]:findObject("Character") ~= nil then
+                            if map[y][x]:findObjectType("Character") ~= nil then
                                 table.insert(target, {self.xy[2]+i,self.xy[1]+j})
                             end
                         end
@@ -223,7 +251,7 @@ function Enemy:getMovement()
     if not (x == self.pxy[1] and y == self.pxy[2]) then
         if map[y][x]:getType() == "Path" then
             if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y, 4})
+                table.insert(movement, {x, y})
             end
         end
     end
@@ -234,7 +262,7 @@ function Enemy:getMovement()
     if not (x == self.pxy[1] and y == self.pxy[2]) then
         if map[y][x]:getType() == "Path" then
             if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y, 2})
+                table.insert(movement, {x, y})
             end
         end
     end
@@ -246,7 +274,7 @@ function Enemy:getMovement()
     if not (x == self.pxy[1] and y == self.pxy[2]) then
         if map[y][x]:getType() == "Path" then
             if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y, 1})
+                table.insert(movement, {x, y})
             end
         end
     end
@@ -257,7 +285,7 @@ function Enemy:getMovement()
     if not (x == self.pxy[1] and y == self.pxy[2]) then
         if map[y][x]:getType() == "Path" then
             if map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(movement, {x, y, 3})
+                table.insert(movement, {x, y})
             end
         end
     end
