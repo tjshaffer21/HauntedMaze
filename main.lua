@@ -106,7 +106,8 @@ function enemyCharCollision(e)
                 end
             end
         else
-            gameOver()
+            print("Collidoscope")
+            --gameOver()
         end
     end
 end
@@ -133,7 +134,7 @@ function update_enemy(dt)
             v:updateTimer(dt)
         end
         
-        --v:move()
+        v:move()
         enemyCharCollision(v)
     end
 end

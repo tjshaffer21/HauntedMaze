@@ -1,3 +1,6 @@
+--[[--------------------------------------------------------------------------
+--                                  Pellet                                  --
+--------------------------------------------------------------------------]]--
 Pellet = {}
 Pellet.__index = Pellet
 
@@ -27,6 +30,12 @@ end
 function Pellet:getValue()
     return self.value
 end
+
+--[[--------------------------------------------------------------------------
+--                              SuperPellet                                 --
+-- SuperPellets are rarer than normal Pellets. As a side-effect they provide--
+-- temporary vulnerability to the enemies.                                  --
+--------------------------------------------------------------------------]]--
 
 SuperPellet = {}
 SuperPellet.__index = SuperPellet

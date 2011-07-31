@@ -5,16 +5,17 @@ function Enemy.create(x,y)
     local obj = {}
     setmetatable(obj, Enemy)
     
-    obj.is_a       = "Enemy"
-    obj.priority   = 2
-    obj.speed      = 10
-    obj.value      = 1000
-    obj.vulnrable  = false
-    obj.vultimer   = 500
-    obj.x          = x
-    obj.y          = y
-    obj.prevX      = -1
-    obj.prevY      = -1
+    obj.is_a        = "Enemy"
+    obj.priority    = 2
+    obj.value       = 1000
+    obj.speed       = 10
+    
+    obj.is_vulerable    = false
+    obj.vultimer        = 500
+    
+    obj.xy  = {x,y}      -- Current  {x,y}
+    obj.pxy = {-1,-1}      -- Previous {x,y}
+    obj.dir = -1         -- -1 : None, 1: Up, 2: Right, 3: Down, 4: Left
     
     return obj
 end
@@ -36,24 +37,24 @@ function Enemy:draw(x,y)
 end
 
 function Enemy:getX()
-    return self.x
+    return self.xy[1]
 end
 
 function Enemy:getY()
-    return self.y
+    return self.xy[2]
 end
 
 function Enemy:setX(x)
-    self.x = x
+    self.xy[1] = x
 end
 
 function Enemy:setY(y)
-    self.y = y
+    self.xy[2] = y
 end
 
 function Enemy:setXY(x,y)
-    self.x = x
-    self.y = y
+    self.xy[1] = x
+    self.xy[2] = y
 end
 
 function Enemy:getValue()
@@ -61,19 +62,19 @@ function Enemy:getValue()
 end
 
 function Enemy:isVulnerable()
-    return self.vulnrable
+    return self.is_vulerable
 end
 
 function Enemy:invulnerable()
-    self.vulnrable = false
+    self.is_vulerable = false
     self.vultimer   = 500
 end
 
 function Enemy:vulnerable()
-    if self.vulnrable == true then
+    if self.is_vulerable == true then
         self.vultimer = self.vultimer + 100
     else
-        self.vulnrable = true
+        self.is_vulerable = true
     end
 end
 
@@ -96,136 +97,170 @@ function Enemy:move()
     self.speed = self.speed - 1
     
     if self.speed <= 0 then
-        local surroundings,target = self:getSurroundings()
+        local target = self:lineOfSight()
         
-        if #target == 2 then        -- Character found within enemy's LoS
-            local cx = target[1]    -- Get character's x position
-            local cy = target[2]    -- Get character's y position
-            
-            local distance = math.sqrt(math.pow((cx - self.y),2) + math.pow(cy - self.y,2))
-            local movement = self:moveLocations()
-
-            for i,v in ipairs(movement) do
-                local nx = v[1]
-                local ny = v[2]
-                
-                local newDistance = math.sqrt(math.pow((cx - nx),2) + math.pow((cy - ny),2))
-                if newDistance < distance then
-                    self:moveEnemy(nx,ny)
+        if #target > 0 then
+            for i,v in ipairs(target) do
+                io.write("target:\t")
+                for j,e in ipairs(v) do
+                    io.write(e, " ")
                 end
+                io.write("\n")
             end
         else
+            local movement = self:getMovement()
+            local pickdir = math.random(1,#movement)
             
+            while #movement > 0 do
+                local getdir = movement[pickdir]
+
+                if self:moveEnemy(getdir[1],getdir[2]) then
+                    self.dir = getdir[3]
+                    break
+                end
+
+                table.remove(movement,pickdir)
+                pickdir = (pickdir + 1) % #movement
+                if pickdir == 0 then pickdir = 1 end
+            end
         end
-        
         self.speed = 10
     end
 end
 
 --[[--
-    Check the adjancent squares to see where enemy can move.
-    @return table of tables {{x,y}...}
+    Move to given x,y.
+    @parameter x
+    @parameter y
+    @return bool
 --]]--
-function Enemy:moveLocations()
-    local movement = {}
-    if map[self.y-1][self.x]:getType() == "Path" and map[self.y-1][self.x]:canEnemyTraverse() then
-        table.insert(movement, {self.x, self.y-1})
-    end
-    
-    if map[self.y+1][self.x]:getType() == "Path" and map[self.y+1][self.x]:canEnemyTraverse() then
-        table.insert(movement, {self.x, self.y+1})
-    end
-    
-    if map[self.y][self.x-1]:getType() == "Path" and map[self.y][self.x-1]:canEnemyTraverse() then
-        table.insert(movement, {self.x-1, self.y})
-    end
-    
-    if map[self.y][self.x+1]:getType() == "Path" and map[self.y][self.x+1]:canEnemyTraverse() then
-        table.insert(movement, {self.x+1, self.y-1})
-    end
-    
-    return movement
-end
-
 function Enemy:moveEnemy(x,y)
     if y > 0 and y <= mapObj:getY() and x > 0 and x <= mapObj:getX() then
         if map[y][x]:getType() == "Path" and map[y][x]:canEnemyTraverse() then
             if map[y][x]:findObjectType("Door") == nil then
+                self.pxy[1] = self.xy[1]
+                self.pxy[2] = self.xy[2]
                 map[self:getY()][self:getX()]:removeObject(self)
-                
-                self.prevX = self.x
-                self.prevY = self.y
                 
                 self:setXY(x,y)
                 map[y][x]:addObject(self)
-            else
-               return false
-            end
                 
-            return true
+                return true
+            else
+                return false
+            end
         end
     end
 
     return false
 end
 
+---- Private
 --[[--
-    Get the surrounding cells.
-    Ignores cells that contain or are beyond walls and cells that contain enemies.
-    @return table
+    Scan the enemies line of sight
+    @return target, if target is found within los then return {x,y}.
 --]]--
-function Enemy:getSurroundings()
-    local surroundings = {}
-    local target       = {}
-    local maxDepth     = 3
-    
-    local i = -(maxDepth)
-    while i <= maxDepth do
-        local row       = {}
-        local j         = -1
-        
-        -- Check left side
-        while j >= -(maxDepth) do
-            local x = self.x+j
-            local y = self.y+i
-            
-            if map[y][x]:getType() == "Wall" then break end -- Don't look past a wall.
-            if map[y][x]:getType() == "Path" then
-                if map[y][x]:findObjectType("Enemy") == nil then
-                    table.insert(row, map[y][x])
-                end
-                
-                if map[y][x]:findObjectType("Character") ~= nil then
-                    target[1] = x
-                    target[2] = y
-                end
-            end
-            
-            j = j - 1
-        end
-        
-        -- Check right side
-        j = 0
-        while j <= maxDepth do
-            local x = self.x+j
-            local y = self.y+i
-            
-            if map[y][x]:getType() == "Wall" then break end -- Don't look past a wall.
-            if map[y][x]:getType() == "Path" and map[y][x]:findObjectType("Enemy") == nil then
-                table.insert(row, map[y][x])
-            end
-            
-            if map[y][x]:findObjectType("Character") ~= nil then
-                target[1] = x
-                target[2] = y
-            end
-            
-            j = j + 1
-        end
+function Enemy:lineOfSight()
+    local distance  = 3
+    local target    = {}
 
-        table.insert(surroundings, row)
+    local i = -distance
+    while i <= distance do
+        local y = self.xy[2]+i
+        local j = -1
+
+        if y > 0 and y <= mapObj:getY() then
+
+            while j >= -distance do
+                local x = self.xy[1]+j
+
+                if x > 0 and x <= mapObj:getX() then
+                    if map[y][x] ~= nil and map[y][x]:getType() == "Path" then
+                        -- Ignore path if another Enemy is there
+                        if map[y][x]:findObjectType("Enemy") == nil then
+                            if map[y][x]:findObject("Character") ~= nil then
+                                table.insert(target, {self.xy[2]+i,self.xy[1]+j})
+                            end
+                        end
+                    end
+                end
+            
+                j = j - 1
+            end
+            
+            j = 0
+            while j <= distance do
+                local x = self.xy[1]+j
+                
+                if x >= 1 and x <= mapObj:getX() then
+                    if map[y][x] ~= nil and map[y][x]:getType() == "Path" then
+                        -- Ignore path if another Enemy is there
+                        if map[y][x]:findObjectType("Enemy") == nil then
+                            if map[y][x]:findObjectType("Character") ~= nil then
+                                table.insert(target, {self.xy[2]+i,self.xy[1]+j})
+                            end
+                        end
+                    end
+                end
+                j = j + 1
+            end
+        end
         i = i + 1
     end
+
+    return target
+end
+
+--[[--
+    Get the available movement locations.
+    @return {{x,y,dir}...}
+--]]--
+function Enemy:getMovement()
+    local movement = {}
+    local x = self.xy[1]-1
+    local y = self.xy[2]
     
-    return surroundings, target
+    if not (x == self.pxy[1] and y == self.pxy[2]) then
+        if map[y][x]:getType() == "Path" then
+            if map[y][x]:findObjectType("Enemy") == nil then
+                table.insert(movement, {x, y, 4})
+            end
+        end
+    end
+    
+    x = self.xy[1]+1
+    y = self.xy[2]
+    
+    if not (x == self.pxy[1] and y == self.pxy[2]) then
+        if map[y][x]:getType() == "Path" then
+            if map[y][x]:findObjectType("Enemy") == nil then
+                table.insert(movement, {x, y, 2})
+            end
+        end
+    end
+    
+    
+    x = self.xy[1]
+    y = self.xy[2] - 1
+    
+    if not (x == self.pxy[1] and y == self.pxy[2]) then
+        if map[y][x]:getType() == "Path" then
+            if map[y][x]:findObjectType("Enemy") == nil then
+                table.insert(movement, {x, y, 1})
+            end
+        end
+    end
+    
+    x = self.xy[1]
+    y = self.xy[2] + 1
+
+    if not (x == self.pxy[1] and y == self.pxy[2]) then
+        if map[y][x]:getType() == "Path" then
+            if map[y][x]:findObjectType("Enemy") == nil then
+                table.insert(movement, {x, y, 3})
+            end
+        end
+    end
+    
+    return movement
 end
