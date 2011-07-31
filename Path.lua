@@ -28,7 +28,11 @@ function Path:draw(x,y)
     
     local objects = self:findHighest()
     if objects ~= nil then
-        objects:draw(x,y)
+        if objects.priority > self.priority then
+            objects:draw(x,y)
+        else
+            love.graphics.draw(pathimg,x,y)
+        end
     end
 end
 

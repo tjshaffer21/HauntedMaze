@@ -19,6 +19,7 @@ function Door.create(x,y,lock,key)
     obj.lock      = lock
     obj.key       = key
     obj.is_locked = true
+    obj.priority  = 1
     
     return obj
 end

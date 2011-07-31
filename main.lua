@@ -159,7 +159,7 @@ function love.load()
     
     love.graphics.setBackgroundColor(0,0,0)
     
-    mapObj = Map.create("level1.dat")
+    mapObj = Map.create("maps/level1.dat")
     mapObj:generate_map()
     map = mapObj:getMap()
 end
@@ -196,7 +196,10 @@ function love.keypressed( key )
     if key == "d" then x = x+1 end
     
     if moveChar(x,y) == true then
-
         collectPellet(x,y)
+        
+        if map[y][x]:findObjectType("Exit") then
+            print("Level complete.")
+        end
     end
 end

@@ -94,6 +94,9 @@ function Map:generate_map()
                     newObject   = Path.create(enemy, true, true)
                     
                     table.insert(enemy_list, enemy)
+                elseif s == "9" then
+                    local ext   = ExitPoint.create()
+                    newObject   = Path.create(ext, true, false)
                 end
             end
             
