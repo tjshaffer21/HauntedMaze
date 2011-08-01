@@ -17,13 +17,16 @@ D
 
 To Do:
 ------
-1. Create more levels
-2. Intro. screen
-3. Game over screen
-4. Pause feature
-5. Save high score
-6. Create more sophisticated AI.
-7. Create a variety of different types of AI.
+01. Create more levels
+02. Intro. screen
+03. Game over screen
+04. Pause feature
+05. Save high score
+06. Create more sophisticated AI.
+07. Create a variety of different types of AI.
+08. Add more lives
+09. Improve movement/time
+10. Create a more sophisticated map file
 
 Contact:
 --------

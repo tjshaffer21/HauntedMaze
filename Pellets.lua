@@ -1,5 +1,8 @@
 --[[--------------------------------------------------------------------------
 --                                  Pellet                                  --
+-- A normal type of pellet. All pellets, including SuperPellets must be     --
+-- be gathered to advance to the next level.                                --
+-- Value:   100
 --------------------------------------------------------------------------]]--
 Pellet = {}
 Pellet.__index = Pellet
@@ -23,6 +26,7 @@ end
 --                              SuperPellet                                 --
 -- SuperPellets are rarer than normal Pellets. As a side-effect they provide--
 -- temporary vulnerability to the enemies.                                  --
+-- Value:   500
 --------------------------------------------------------------------------]]--
 
 SuperPellet = {}
@@ -37,10 +41,6 @@ function SuperPellet.create()
     obj.value       = 500
     
     return obj
-end
-
-function SuperPellet:getType()
-    return self.is_a
 end
 
 function SuperPellet:draw(x,y)

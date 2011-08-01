@@ -132,6 +132,7 @@ function love.load()
     spelletimg     = love.graphics.newImage("images/spellet.png")
     enemyimg       = love.graphics.newImage("images/enemy.png")
     vulenemyimg    = love.graphics.newImage("images/vulenemy.png")
+    zombieimg      = love.graphics.newImage("images/zombie.png")
     characterimg   = love.graphics.newImage("images/character.png")
     
     love.graphics.setBackgroundColor(0,0,0)

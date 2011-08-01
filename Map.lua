@@ -7,7 +7,6 @@ function Map.create()
     
     obj.filelist    = {"maps\\level1.dat", "maps\\level2.dat"}
     obj.fileindex   = 1
-    obj.map         = {}
     obj.xy          = {nil,nil}
     return obj
 end
@@ -34,9 +33,9 @@ end
          1 - Traversable path, with pellet
          2 - Traversable path, with supper pellet
          3 - Traversable path, with no pellet
-         4 - Enemy
+         4 - Ghost
          5 - Character
-         6 - Enemy, traversable path
+         6 - Zombie
 --]]--
 function Map:generate_map() 
     io.input(self.filelist[self.fileindex])
@@ -85,7 +84,7 @@ function Map:generate_map()
                 elseif s == "3" then
                     newObject = Path.create(nil,true,true)
                 elseif s == "4" then
-                    local enemy = Enemy.create(j,i)
+                    local enemy = Ghost.create(j,i)
                     newObject   = Path.create(enemy, false, true)
                     
                     table.insert(enemy_list, enemy)
@@ -93,8 +92,8 @@ function Map:generate_map()
                     character   = Character.create(j,i)
                     newObject   = Path.create(character, true, true)
                 elseif s == "6" then
-                    local enemy = Enemy.create(j,i)
-                    newObject   = Path.create(enemy, true, true)
+                    local enemy = Zombie.create(j,i)
+                    newObject   = Path.create(enemy, false, true)
                     
                     table.insert(enemy_list, enemy)
                 elseif s == "9" then
