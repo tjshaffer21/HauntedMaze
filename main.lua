@@ -115,7 +115,7 @@ end
 
 function reset()
     for i,v in ipairs(enemy_list) do
-        moveEnemy(v,v.spawn[1],v.spawn[2])
+        v:respawn()
     end
     
     character:moveChar(character.spawn[1], character.spawn[2])

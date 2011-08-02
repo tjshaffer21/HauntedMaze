@@ -37,7 +37,7 @@ function updateTimer(self,dt)
     self.vultimer = self.vultimer - (dt*100)
     
     if self.vultimer <= 0.001 then
-        self.invulnerable()
+        invulnerable(self)
         return true
     end
     
@@ -67,7 +67,7 @@ end
 --  Type:  Stupid                                                           --
 --  Value: 250                                                              --
 --  AI:                                                                     --
---      Speed    -  40                                                      --
+--      Speed    -  40  (Slow)                                                    --
 --      LoS      -  
 --      Movement -  If no target then continue straight until no longer     --
 --                  able then pick a new direction.                         --
@@ -132,6 +132,12 @@ function Zombie:move()
     end
 end
 
+function Zombie:respawn()
+    moveEnemy(self, self.spawn[1], self.spawn[2])
+    self.path = {}
+end
+
+-- Private
 function Zombie:getPaths()
     local paths = {}
     
@@ -276,18 +282,16 @@ function Ghost:move()
                     end
                 end
             end
-                            
-            Enemy:moveEnemy(self,nx,ny)
         else                                    -- Only worry about next move
 
             if #movement == 0 then
-                self:moveEnemy(self.pxy[1], self.pxy[2])
+                moveEnemy(self,self.pxy[1], self.pxy[2])
             else
                 local pickdir = math.random(1,#movement)
                 while #movement > 0 do
                     local getdir = movement[pickdir]
 
-                    if Enemy:moveEnemy(self,getdir[1],getdir[2]) then
+                    if moveEnemy(self,getdir[1],getdir[2]) then
                         break
                     end
 
@@ -299,6 +303,10 @@ function Ghost:move()
         end
         self.speed = 10
     end
+end
+
+function Ghost:respawn()
+    moveEnemy(self, self.spawn[1], self.spawn[2])
 end
 
 ---- Private
