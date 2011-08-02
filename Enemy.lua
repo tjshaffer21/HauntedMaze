@@ -1,9 +1,74 @@
 --[[--------------------------------------------------------------------------
+--                              Enemy                                       --
+--                      Basic classes found in all Enemy types.             --
+--------------------------------------------------------------------------]]--
+--[[--
+    Move to given x,y.
+    @parameter x
+    @parameter y
+    @return bool
+--]]--
+function moveEnemy(self,x,y)
+    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
+        if map[y][x].is_a == "Path" and map[y][x]:canEnemyTraverse() then
+            if map[y][x]:findObjectType("Door") == nil then
+                self.pxy[1] = self.xy[1]
+                self.pxy[2] = self.xy[2]
+                map[self.xy[2]][self.xy[1]]:removeObject(self)
+                
+                setXY(self,x,y)
+                map[y][x]:addObject(self)
+                
+                return true
+            else
+                return false
+            end
+        end
+    end
+
+    return false
+end
+
+--[[--
+    Decrement the vulnerability timer.
+    @return true if timer reaches zero, else false
+--]]--
+function updateTimer(self,dt)
+    self.vultimer = self.vultimer - (dt*100)
+    
+    if self.vultimer <= 0.001 then
+        self.invulnerable()
+        return true
+    end
+    
+    return false
+end
+
+function setXY(self,x,y)
+    self.xy[1] = x
+    self.xy[2] = y
+end
+
+function invulnerable(self)
+    self.is_vulnerable  = false
+    self.vultimer       = 500
+end
+
+function vulnerable(self)
+    if self.is_vulnerable == true then
+        self.vultimer = self.vultimer + 500
+    else
+        self.is_vulnerable = true
+    end
+end
+
+--[[--------------------------------------------------------------------------
 --                                  Zombie                                  --
 --  Type:  Stupid                                                           --
 --  Value: 250                                                              --
 --  AI:                                                                     --
---      LoS -
+--      Speed    -  40                                                      --
+--      LoS      -  
 --      Movement -  If no target then continue straight until no longer     --
 --                  able then pick a new direction.                         --
 --                  If target then chase                                    --
@@ -19,7 +84,7 @@ function Zombie.create(x,y)
     obj.kind        = "Zombie"
     obj.priority    = 2
     obj.value       = 250
-    obj.speed       = 30
+    obj.speed       = 40
     
     obj.dir         = -1
     obj.path        = {}
@@ -43,65 +108,27 @@ function Zombie:draw(x,y)
     end
 end
 
-function Zombie:setXY(x,y)
-    self.xy[1] = x
-    self.xy[2] = y
-end
-
-function Zombie:invulnerable()
-    self.is_vulnerable  = false
-    self.vultimer       = 500
-end
-
-function Zombie:vulnerable()
-    if self.is_vulnerable == true then
-        self.vultimer = self.vultimer + 500
-    else
-        self.is_vulnerable = true
-    end
-end
-
-function Zombie:move()
-    print("Braains")
-end
-
---[[--
-    Decrement the vulnerability timer.
-    @return true if timer reaches zero, else false
---]]--
-function Zombie:updateTimer(dt)
-    self.vultimer = self.vultimer - (dt*100)
-    
-    if self.vultimer <= 0.001 then
-        self.invulnerable()
-        return true
-    end
-    
-    return false
-end
-
 function Zombie:move()
     self.speed = self.speed - 1
     
     if self.speed <= 0 then
         if #self.path ~= 0 then
-            local xy = table.remove(self.path,1)
-            self:moveEnemy(xy[1],xy[2])
+            local xy = self.path[1]
+            
+            if moveEnemy(self,xy[1],xy[2]) then
+                table.remove(self.path,1)
+            end
         else
             local paths = self:getPaths()
-            
-            local longest = {}
-            for i,v in ipairs(paths) do
-                if #v > #longest then
-                    longest = v
-                end
+            local pick  = math.random(1,#paths)
+
+            self.path   = paths[pick]
+            local xy = self.path[1]
+            if moveEnemy(self,xy[1],xy[2]) then
+                table.remove(self.path,1)
             end
-            
-            self.path = longest
-            local xy = table.remove(self.path,1)
-            self:moveEnemy(xy[1],xy[2])
         end 
-        self.speed = 10
+        self.speed = 40
     end
 end
 
@@ -110,71 +137,64 @@ function Zombie:getPaths()
     
     local x    = self.xy[1] - 1
     local y    = self.xy[2]
-    local path = {}
-    while x > 0 and (map[y][x].is_a == "Path") do
-        table.insert(path, {x,y})
-        x = x - 1
+    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
+        local path = {}
+        while x > 0 and (map[y][x].is_a == "Path") do
+            table.insert(path, {x,y})
+            x = x - 1
+        end
+
+        if #path > 0 then
+            table.insert(paths,path)
+        end
     end
-    
-    table.insert(paths,path)
     
     x    = self.xy[1] + 1
     y    = self.xy[2]
-    path = {}
-    while x <= mapObj.xy[2] and (map[y][x].is_a == "Path") do
-        table.insert(path, {x,y})
-        x = x + 1
+    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
+        local path = {}
+        while x <= mapObj.xy[1] and (map[y][x].is_a == "Path") do
+            table.insert(path, {x,y})
+            x = x + 1
+        end
+
+        if #path > 0 then
+            table.insert(paths,path)
+        end
     end
-    
-    table.insert(paths,path)
     
     x    = self.xy[1]
     y    = self.xy[2] - 1
-    path = {}
-    while y > 0 and (map[y][x].is_a == "Path") do
-        table.insert(path, {x,y})
-        y = y - 1
+    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
+        local path = {}
+        while y > 0 and (map[y][x].is_a == "Path") do
+            table.insert(path, {x,y})
+            y = y - 1
+        end
+
+        if #path > 0 then
+            table.insert(paths,path)
+        end
     end
     
-    table.insert(paths,path)
     
     x    = self.xy[1]
     y    = self.xy[2] + 1
-    path = {}
-    while y <= mapObj.xy[2] and (map[y][x].is_a == "Path") do
-        table.insert(path, {x,y})
-        y = y + 1
+    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
+        local path = {}
+        while y <= mapObj.xy[2] and (map[y][x].is_a == "Path") do
+            table.insert(path, {x,y})
+            y = y + 1
+        end
+
+        if #path > 0 then
+            table.insert(paths, path)
+        end
     end
     
     return paths
 end
 
---[[--
-    Move to given x,y.
-    @parameter x
-    @parameter y
-    @return bool
---]]--
-function Zombie:moveEnemy(x,y)
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        if map[y][x].is_a == "Path" and map[y][x]:canEnemyTraverse() then
-            if map[y][x]:findObjectType("Door") == nil then
-                self.pxy[1] = self.xy[1]
-                self.pxy[2] = self.xy[2]
-                map[self.xy[2]][self.xy[1]]:removeObject(self)
-                
-                self:setXY(x,y)
-                map[y][x]:addObject(self)
-                
-                return true
-            else
-                return false
-            end
-        end
-    end
-
-    return false
-end
 --[[--------------------------------------------------------------------------
 --                                  Ghost                                   --
 --  Value: 500                                                              --
@@ -214,39 +234,6 @@ function Ghost:draw(x,y)
     else
         love.graphics.draw(enemyimg,x,y)
     end
-end
-
-function Ghost:setXY(x,y)
-    self.xy[1] = x
-    self.xy[2] = y
-end
-
-function Ghost:invulnerable()
-    self.is_vulnerable  = false
-    self.vultimer       = 500
-end
-
-function Ghost:vulnerable()
-    if self.is_vulnerable == true then
-        self.vultimer = self.vultimer + 500
-    else
-        self.is_vulnerable = true
-    end
-end
-
---[[--
-    Decrement the vulnerability timer.
-    @return true if timer reaches zero, else false
---]]--
-function Ghost:updateTimer(dt)
-    self.vultimer = self.vultimer - (dt*100)
-
-    if self.vultimer <= 0.001 then
-        self:invulnerable()
-        return true
-    end
-    
-    return false
 end
 
 function Ghost:move()
@@ -290,7 +277,7 @@ function Ghost:move()
                 end
             end
                             
-            self:moveEnemy(nx,ny)
+            Enemy:moveEnemy(self,nx,ny)
         else                                    -- Only worry about next move
 
             if #movement == 0 then
@@ -300,7 +287,7 @@ function Ghost:move()
                 while #movement > 0 do
                     local getdir = movement[pickdir]
 
-                    if self:moveEnemy(getdir[1],getdir[2]) then
+                    if Enemy:moveEnemy(self,getdir[1],getdir[2]) then
                         break
                     end
 
@@ -312,33 +299,6 @@ function Ghost:move()
         end
         self.speed = 10
     end
-end
-
---[[--
-    Move to given x,y.
-    @parameter x
-    @parameter y
-    @return bool
---]]--
-function Ghost:moveEnemy(x,y)
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        if map[y][x].is_a == "Path" and map[y][x]:canEnemyTraverse() then
-            if map[y][x]:findObjectType("Door") == nil then
-                self.pxy[1] = self.xy[1]
-                self.pxy[2] = self.xy[2]
-                map[self.xy[2]][self.xy[1]]:removeObject(self)
-                
-                self:setXY(x,y)
-                map[y][x]:addObject(self)
-                
-                return true
-            else
-                return false
-            end
-        end
-    end
-
-    return false
 end
 
 ---- Private

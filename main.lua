@@ -52,7 +52,7 @@ function collectPellet(x,y)
         
         -- Set enemies to vulnerable
         for i,v in ipairs(enemy_list) do
-            v:vulnerable()
+            vulnerable(v)
         end
     end
 end
@@ -101,7 +101,7 @@ end
 function update_enemy(dt)
     for i,v in ipairs(enemy_list) do
         if v.is_vulnerable then
-            v:updateTimer(dt)
+            updateTimer(v,dt)
         end
         
         v:move()
@@ -115,7 +115,7 @@ end
 
 function reset()
     for i,v in ipairs(enemy_list) do
-        v:moveEnemy(v.spawn[1],v.spawn[2])
+        moveEnemy(v,v.spawn[1],v.spawn[2])
     end
     
     character:moveChar(character.spawn[1], character.spawn[2])
