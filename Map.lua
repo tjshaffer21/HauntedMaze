@@ -41,11 +41,12 @@ function Map:generate_map()
     io.input(self.filelist[self.fileindex])
     
     local line  = io.read("*number")    -- width
-    self.xy[1]  = line
+    self.xy[1]  = line * 25
     line        = io.read("*number")    -- height
-    self.xy[2]  = line
+    self.xy[2]  = line * 25
     
     local i = 1             -- y-coordinate
+    line = io.read()        -- Strip blank line
     line = io.read()
     while line ~= nil do
         local mp = {}
@@ -54,7 +55,7 @@ function Map:generate_map()
         for s in line:gmatch('(-?%d+)') do
             local newObject = nil
             if s == "0" then
-               newObject = Wall.create()
+                newObject = Wall.create()
             else
                 if s == "-4" then
                     local door  = Door.create(j,i, "Key", 1)

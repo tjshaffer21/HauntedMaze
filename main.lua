@@ -1,6 +1,7 @@
 dofile('Object.lua')
 
 -- Globals
+offset      = 25
 mapObject   = nil
 map         = {}
 
@@ -13,7 +14,7 @@ score       = 0
 paused       = false
 
 function draw_map()
-    local y = 0
+    local y = 25
     local x = 0
     for ik,i in pairs(map) do
         for jk,j in pairs(map[ik]) do
@@ -105,7 +106,7 @@ function update_enemy(dt)
             updateTimer(v,dt)
         end
         
-        v:move()
+        v:move(dt)
         enemyCharCollision(v)
     end
 end
@@ -119,7 +120,7 @@ function reset()
         v:respawn()
     end
     
-    character:moveChar(character.spawn[1], character.spawn[2])
+    character:respawn()
 end
 
 --[[--
@@ -143,21 +144,34 @@ end
 --]]--
 function movementkeys(key,dt)
 
-    local x = character.xy[1]
-    local y = character.xy[2]
+    local x     = character.dxy[1]
+    local y     = character.dxy[2]
+    local bool  = false
     
-    print(dt)
-    print(character.speed)
+    if key == "w" then
+        local y = character.dxy[2] - (character.speed*dt)
+        bool    = character:moveChar(character.dxy[1], y)
+    end
+    
+    if key == "a" then
+        local x = character.dxy[1] - (character.speed*dt)
+        bool    = character:moveChar(x, character.dxy[2])
+    end
+    
+    if key == "s" then
+        local y = character.dxy[2] + (character.speed*dt)
+        bool    = character:moveChar(character.dxy[1], y)
+    end
+    
+    if key == "d" then
+        local x = character.dxy[1] + (character.speed*dt)
+        bool    = character:moveChar(x, character.dxy[2])
+    end
+    
+   if bool then
+        collectPellet(character.xy[1],character.xy[2])
 
-    if key == "w" then y = y-(math.floor(character.speed*dt)) end
-    if key == "a" then x = x-(math.floor(character.speed*dt)) end
-    if key == "s" then y = y+(math.floor(character.speed*dt)) end
-    if key == "d" then x = x+(math.floor(character.speed*dt)) end
-    
-    if character:moveChar(x,y) == true then
-        collectPellet(x,y)
-        
-        if map[y][x]:findObjectType("Exit") then
+        if map[character.xy[2]][character.xy[1]]:findObjectType("Exit") then
             deleteLevel()
             
             if not mapObj:loadNextLevel() then
