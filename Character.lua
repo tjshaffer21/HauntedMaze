@@ -8,6 +8,7 @@ function Character.create(x,y)
     obj.is_a        = "Character"
     obj.priority    = 2
     obj.lives       = 3
+    obj.speed       = 100
     obj.xy          = {x,y}
     obj.spawn       = {x,y}
     

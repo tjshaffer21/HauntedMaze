@@ -10,6 +10,7 @@ character   = nil
 numPellets  = 0
 highscore   = 0
 score       = 0
+paused       = false
 
 function draw_map()
     local y = 0
@@ -121,10 +122,61 @@ function reset()
     character:moveChar(character.spawn[1], character.spawn[2])
 end
 
+--[[--
+    Delete remains of current level before moving on.
+--]]--
+function deleteLevel()
+    map = {}        -- Better way?
+    
+    for i,v in ipairs(enemy_list) do
+        table.remove(enemy_list,i)
+    end
+    
+    for i,v in ipairs(door_list) do
+        table.remove(door_list,i)
+    end
+end
+
+--[[--
+    Character control when w,a,s,d are pressed.
+    @parameter key - The key pressed.
+--]]--
+function movementkeys(key,dt)
+
+    local x = character.xy[1]
+    local y = character.xy[2]
+    
+    print(dt)
+    print(character.speed)
+
+    if key == "w" then y = y-(math.floor(character.speed*dt)) end
+    if key == "a" then x = x-(math.floor(character.speed*dt)) end
+    if key == "s" then y = y+(math.floor(character.speed*dt)) end
+    if key == "d" then x = x+(math.floor(character.speed*dt)) end
+    
+    if character:moveChar(x,y) == true then
+        collectPellet(x,y)
+        
+        if map[y][x]:findObjectType("Exit") then
+            deleteLevel()
+            
+            if not mapObj:loadNextLevel() then
+                print("Load failed")
+            end
+        end
+    end
+end
+
+function pausegame()
+    if paused == true then
+        paused = false
+    else
+        paused = true
+    end
+end
+
 -- Override love functions.
 function love.load()
-    love.keyboard.setKeyRepeat(1,50)
-    
     pathimg        = love.graphics.newImage("images/path.png")
     wallimg        = love.graphics.newImage("images/wall.png")
     doorimg        = love.graphics.newImage("images/door.png")
@@ -142,8 +194,15 @@ function love.load()
 end
 
 function love.update(dt)
-    update_doors(dt)
-    update_enemy(dt)
+    if not paused then
+        if love.keyboard.isDown("w") then movementkeys("w",dt) end
+        if love.keyboard.isDown("a") then movementkeys("a",dt) end
+        if love.keyboard.isDown("s") then movementkeys("s",dt) end
+        if love.keyboard.isDown("d") then movementkeys("d",dt) end
+        
+        update_doors(dt)
+        update_enemy(dt)
+    end
 end
 
 function love.draw()
@@ -161,38 +220,14 @@ function love.draw()
     end
     
     love.graphics.print(string.format("Score: %d", score), x+50, y, 0, 1, 2)
+    
+    if paused then
+        love.graphics.print("Paused", mapObj.xy[1] / 2, mapObj.xy[2] / 2)
+    end
 end
 
 function love.keypressed( key )
-    local x = character.xy[1]
-    local y = character.xy[2]
-
-    if key == "w" then y = y-1 end
-    if key == "a" then x = x-1 end
-    if key == "s" then y = y+1 end
-    if key == "d" then x = x+1 end
-    
-    if character:moveChar(x,y) == true then
-        collectPellet(x,y)
-        
-        if map[y][x]:findObjectType("Exit") then
-            deleteLevel()
-            
-            if not mapObj:loadNextLevel() then
-                print("Load failed")
-            end
-        end
-    end
-end
-
-function deleteLevel()
-    map = {}        -- Better way?
-    
-    for i,v in ipairs(enemy_list) do
-        table.remove(enemy_list,i)
-    end
-    
-    for i,v in ipairs(door_list) do
-        table.remove(door_list,i)
+    if key == " " then
+        pausegame()
     end
 end
