@@ -20,13 +20,15 @@ To Do:
 01. Create more levels
 02. Intro. screen
 03. Game over screen
-04. Pause feature
 05. Save high score
 06. Create more sophisticated AI.
 07. Create a variety of different types of AI.
 08. Add more lives
 09. Improve movement/time
 10. Create a more sophisticated map file
+
+Bugs:
+-----
 
 Contact:
 --------

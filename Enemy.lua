@@ -10,8 +10,8 @@
 --]]--
 function moveEnemy(self,x,y)
     if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        local mod_x = math.floor(x/25)
-        local mod_y = math.floor(y/25)
+        local mod_x = math.floor(x / offset)
+        local mod_y = math.floor(y / offset)
     
         if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x].enemy_traverse then
             if map[mod_y][mod_x]:findObjectType("Door") == nil then
@@ -24,6 +24,7 @@ function moveEnemy(self,x,y)
                 
                 return 1
             else
+                self.path = {}
                 return 0
             end
         end
@@ -36,10 +37,10 @@ end
     Decrement the vulnerability timer.
     @return true if timer reaches zero, else false
 --]]--
-function updateTimer(self,dt)
-    self.vultimer = self.vultimer - (dt*100)
+function updateVulnerability(self,dt)
+    self.vulnerability  = self.vulnerability - (self.vulnerability_spd * dt)
     
-    if self.vultimer <= 0.001 then
+    if self.vulnerability <= 0.001 then
         invulnerable(self)
         return true
     end
@@ -48,13 +49,16 @@ function updateTimer(self,dt)
 end
 
 function setXY(self,x,y)
+    self.pxy[1] = self.xy[1]
+    self.pxy[2] = self.xy[2]
+    
     self.xy[1] = x
     self.xy[2] = y
 end
 
 function invulnerable(self)
     self.is_vulnerable  = false
-    self.vultimer       = 500
+    self.vulnerability  = 500
 end
 
 function vulnerable(self)
@@ -90,6 +94,85 @@ function calculateDxDy(self,comp_dx,comp_dy,dt)
     return {dx,dy}
 end
 
+--[[--
+    Finds available paths.
+    @parameter self
+    @parameter distance - Distance to search in each direction
+    @return table of paths.
+--]]--
+function getPaths(self,distance)
+    local paths = {}
+    
+    local i    = 1
+    local x    = self.xy[1] - 1
+    local y    = self.xy[2]
+   if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+        local path = {}
+        while (x > 0 and (map[y][x].is_a == "Path")) and i <= distance do
+            table.insert(path, {x,y})
+            x = x - 1
+            i = i + 1
+        end
+
+        if #path > 0 then
+            table.insert(paths,path)
+        end
+    end
+    
+    i   = 1
+    x   = self.xy[1] + 1
+    y   = self.xy[2]
+    if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+        local path = {}
+        while (x <= math.floor(mapObj.xy[1]/25) and (map[y][x].is_a == "Path"))
+          and i <= distance do
+            table.insert(path, {x,y})
+            x = x + 1
+            i = i + 1
+        end
+
+        if #path > 0 then
+            table.insert(paths,path)
+        end
+    end
+    
+    i   = 1
+    x   = self.xy[1]
+    y   = self.xy[2] - 1
+   if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+        local path = {}
+        while (y > 0 and (map[y][x].is_a == "Path")) and i <= distance do
+            table.insert(path, {x,y})
+            y = y - 1
+            i = i + 1
+        end
+
+        if #path > 0 then
+            table.insert(paths,path)
+        end
+    end
+    
+    i   = 1
+    x   = self.xy[1]
+    y   = self.xy[2] + 1
+   if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+        local path = {}
+        while (y <= math.floor(mapObj.xy[2]/25) and (map[y][x].is_a == "Path"))
+          and i <= distance do
+            table.insert(path, {x,y})
+            y = y + 1
+            i = i + 1
+        end
+
+        if #path > 0 then
+            table.insert(paths, path)
+        end
+    end
+    
+    return paths
+end
+
+
 --[[--------------------------------------------------------------------------
 --                                  Zombie                                  --
 --  Type:  Stupid                                                           --
@@ -117,8 +200,9 @@ function Zombie.create(x,y)
     obj.dir         = -1
     obj.path        = {}
     
-    obj.is_vulnerable   = false
-    obj.vultimer        = 500
+    obj.is_vulnerable       = false
+    obj.vulnerability       = 500
+    obj.vulnerability_spd   = 100
     
     obj.dxy = {x*25,y*25}   -- Drawing {x,y}
     obj.xy  = {x,y}         -- Current {x,y}
@@ -139,7 +223,7 @@ end
 
 function Zombie:move(dt)
     if #self.path == 0 then
-        local paths = self:getPaths()
+        local paths = getPaths(self,100)
 
         if #paths > 0 then
             local pick  = math.random(1,#paths)
@@ -161,73 +245,19 @@ function Zombie:move(dt)
 end
 
 function Zombie:respawn()
-    moveEnemy(self, self.spawn[1], self.spawn[2])
+    map[self.xy[2]][self.xy[1]]:removeObject(self)
+    
+    self.xy[1] = self.spawn[1]
+    self.xy[2] = self.spawn[2]
+    
+    self.dxy[1] = self.xy[1] * 25
+    self.dxy[2] = self.xy[2] * 25
+    
+    map[self.xy[2]][self.xy[1]]:addObject(self)
+    
     self.path = {}
 end
 
--- Private
-function Zombie:getPaths()
-    local paths = {}
-    
-    local x    = self.xy[1] - 1
-    local y    = self.xy[2]
-    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
-        local path = {}
-        while x > 0 and (map[y][x].is_a == "Path") do
-            table.insert(path, {x,y})
-            x = x - 1
-        end
-
-        if #path > 0 then
-            table.insert(paths,path)
-        end
-    end
-    
-    x    = self.xy[1] + 1
-    y    = self.xy[2]
-    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
-        local path = {}
-        while x <= math.floor(mapObj.xy[1]/25) and (map[y][x].is_a == "Path") do
-            table.insert(path, {x,y})
-            x = x + 1
-        end
-
-        if #path > 0 then
-            table.insert(paths,path)
-        end
-    end
-    
-    x    = self.xy[1]
-    y    = self.xy[2] - 1
-
-    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
-        local path = {}
-        while y > 0 and (map[y][x].is_a == "Path") do
-            table.insert(path, {x,y})
-            y = y - 1
-        end
-
-        if #path > 0 then
-            table.insert(paths,path)
-        end
-    end
-    
-    x    = self.xy[1]
-    y    = self.xy[2] + 1
-    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
-        local path = {}
-        while y <= math.floor(mapObj.xy[2]/25) and (map[y][x].is_a == "Path") do
-            table.insert(path, {x,y})
-            y = y + 1
-        end
-
-        if #path > 0 then
-            table.insert(paths, path)
-        end
-    end
-    
-    return paths
-end
 
 --[[--------------------------------------------------------------------------
 --                                  Ghost                                   --
@@ -252,13 +282,14 @@ function Ghost.create(x,y)
     obj.value       = 500
     obj.speed       = 200
     
-    obj.is_vulnerable   = false
-    obj.vultimer        = 500
+    obj.is_vulnerable       = false
+    obj.vulnerability       = 500
+    obj.vulnerability_spd   = 100
     
     obj.dxy     = {x*offset,y*offset}   -- Drawing {x,y}
     obj.xy      = {x,y}                 -- Current {x,y}
     obj.pxy     = {-1,-1}               -- Previous {x,y}
-    obj.nxy     = {-1,-1}               -- Next {x,y}
+    obj.path    = {}
     obj.spawn   = {x,y}                 -- Spawn {x,y}
     
     return obj
@@ -273,39 +304,48 @@ function Ghost:draw(x,y)
 end
 
 function Ghost:move(dt)
-    local path = self:getPaths()
-    print(#path)
-    if self.nxy[1] > 0 and self.nxy[2] > 0 then
-        local dxy = calculateDxDy(self,self.nxy[1],self.nxy[1],dt)
-        self:moveCheck(dxy,dt)
-    else
-        if #path > 0 then
-            local pick = math.random(1,#path)
-            local nx   = path[pick][1]
-            local ny   = path[pick][2]
-            
-            if (nx == self.pxy[1] and ny == self.pxy[2]) and #path > 1 then
-                print("No repeats")
-            else
-                
-                self.nxy[1] = path[pick][1]
-                self.nxy[2] = path[pick][2]
+    print(#self.path)
+    if #self.path == 0 then
+        local paths = getPaths(self,1)
+        print("\t",#paths)
+        if #paths >= 1 then
+            local pick  = math.random(1,#paths)
 
-                local dxy = calculateDxDy(self,self.nxy[1],self.nxy[2],dt)
-                self:moveCheck(dxy,dt)
+            self.path   = paths[pick]
+        elseif #paths == 0 then
+            print("Trapped")
+            self.pxy[1] = -1
+            self.pxy[2] = -1
+            self.path   = {}
+        end
+    else
+        local nx = self.path[1][1]
+        local ny = self.path[1][2]
+
+        local dxy = calculateDxDy(self,nx,ny,dt)
+        
+        if moveEnemy(self,dxy[1],dxy[2]) then
+            if self.xy[1] == nx and self.xy[2] == ny then
+                table.remove(self.path,1)
             end
+        else
+            self.path = {}
         end
     end
 end
 
 function Ghost:respawn()
-    self.dxy[1] = self.spawn[1] * offset
-    self.dxy[2] = self.spawn[2] * offset
-   
     map[self.xy[2]][self.xy[1]]:removeObject(self)
     
-    setXY(self,self.spawn[1],self.spawn[2])
-    map[self.spawn[2]][self.spawn[1]]:addObject(self)
+    self.xy[1] = self.spawn[1]
+    self.xy[2] = self.spawn[2]
+    
+    self.dxy[1] = self.xy[1] * 25
+    self.dxy[2] = self.xy[2] * 25
+    
+    map[self.xy[2]][self.xy[1]]:addObject(self)
+    
+    self.path = {}
 end
 
 ---- Private
@@ -361,57 +401,4 @@ function Ghost:lineOfSight()
     end
 
     return target
-end
-
---[[--
-    Get the available movement locations.
-    @return {{x,y}...}
---]]--    
-function Ghost:getPaths()
-    local paths = {}
-    
-    local x    = self.xy[1] - 1
-    local y    = self.xy[2]
-    if map[y][x].is_a == "Path" then
-        table.insert(paths, {x, y})
-    end
-
-    x    = self.xy[1] + 1
-    y    = self.xy[2]
-    
-    if map[y][x].is_a == "Path" then
-        table.insert(paths, {x, y})
-    end
-
-    x    = self.xy[1]
-    y    = self.xy[2] - 1
-
-    if map[y][x].is_a == "Path" then
-        table.insert(paths, {x, y})
-    end
-    
-    x    = self.xy[1]
-    y    = self.xy[2] + 1
-    if map[y][x].is_a == "Path" then
-        table.insert(paths, {x, y})
-    end
-    
-    return paths
-end
-
-function Ghost:moveCheck(dxy,dt)
-    local x = self.xy[1]
-    local y = self.xy[2]
-    
-    local mv = moveEnemy(self,dxy[1],dxy[2])
-    if mv == 1 then
-        self.pxy[1] = x
-        self.pxy[2] = y
-        
-        self.nxy[1] = -1
-        self.nxy[2] = -1
-    elseif mv == 0 then
-        self.nxy[1] = -1
-        self.nxy[2] = -1
-    end
 end

@@ -1,17 +1,22 @@
 dofile('Object.lua')
 
 -- Globals
-offset      = 25
+offset      = 25        -- Drawing offset
 mapObject   = nil
 map         = {}
 
 enemy_list  = {}
 door_list   = {}
+
 character   = nil
 numPellets  = 0
+
 highscore   = 0
 score       = 0
-paused       = false
+
+gameover        = false
+paused          = false
+pregame_timer   = 3000
 
 function draw_map()
     local y = 25
@@ -76,7 +81,7 @@ function enemyCharCollision(e)
             character:rmLife()
             
             if character.lives == 0 then
-                gameOver()
+                gameover = true
             else
                 reset()
             end
@@ -87,7 +92,7 @@ end
 function update_doors(dt)
     for i,v in ipairs(door_list) do
         if v.lock == "Timed" then
-            if v:updateKey(dt) then
+            if pregame_timer <= 0 then
                 map[v.xy[2]][v.xy[1]]:removeObject(v)
                 table.remove(door_list,i)
             end
@@ -103,16 +108,12 @@ end
 function update_enemy(dt)
     for i,v in ipairs(enemy_list) do
         if v.is_vulnerable then
-            updateTimer(v,dt)
+            updateVulnerability(v,dt)
         end
         
         v:move(dt)
         enemyCharCollision(v)
     end
-end
-
-function gameOver()
-    print("The game is met.")
 end
 
 function reset()
@@ -208,35 +209,49 @@ function love.load()
 end
 
 function love.update(dt)
-    if not paused then
-        if love.keyboard.isDown("w") then movementkeys("w",dt) end
-        if love.keyboard.isDown("a") then movementkeys("a",dt) end
-        if love.keyboard.isDown("s") then movementkeys("s",dt) end
-        if love.keyboard.isDown("d") then movementkeys("d",dt) end
-        
-        update_doors(dt)
-        update_enemy(dt)
+    if pregame_timer > 0 then
+        pregame_timer = pregame_timer - (dt*1000)
+    else
+        if not paused then
+            if love.keyboard.isDown("w") then movementkeys("w",dt) end
+            if love.keyboard.isDown("a") then movementkeys("a",dt) end
+            if love.keyboard.isDown("s") then movementkeys("s",dt) end
+            if love.keyboard.isDown("d") then movementkeys("d",dt) end
+            
+            update_doors(dt)
+            update_enemy(dt)
+        end
     end
 end
 
 function love.draw()
-    draw_map()
-    
-    local x = 50
-    local y = 1
-    love.graphics.print(string.format("Highscore: %d", highscore), x, y, 0, 1, 2)
-    
-    x = (love.graphics.getWidth() / 2) - 50
- 
-    for i=1,character.lives do
-        love.graphics.draw(characterimg, x, y)
-        x = x + characterimg:getWidth()
-    end
-    
-    love.graphics.print(string.format("Score: %d", score), x+50, y, 0, 1, 2)
-    
-    if paused then
-        love.graphics.print("Paused", mapObj.xy[1] / 2, mapObj.xy[2] / 2)
+    if not gameover then
+        if pregame_timer > 0 then
+            love.graphics.print(string.format("%d", pregame_timer), 1, 1)
+        end
+        
+        draw_map()
+        
+        local x = 50
+        local y = 1
+        love.graphics.print(string.format("Highscore: %d", highscore), x, y, 0, 1, 2)
+        
+        x = (love.graphics.getWidth() / 2) - 50
+     
+        for i=1,character.lives do
+            love.graphics.draw(characterimg, x, y)
+            x = x + characterimg:getWidth()
+        end
+        
+        love.graphics.print(string.format("Score: %d", score), x+50, y, 0, 1, 2)
+        
+        if paused then
+            love.graphics.print("Paused", mapObj.xy[1] / 2, mapObj.xy[2] / 2)
+        end
+    else
+        love.graphics.clear()
+        
+        love.graphics.print("Game Over", mapObj.xy[1] / 2, mapObj.xy[2], 0, 1, 50)
     end
 end
 

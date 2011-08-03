@@ -64,9 +64,13 @@ function Character:rmLife()
 end
 
 function Character:respawn()
+    map[self.xy[2]][self.xy[1]]:removeObject(self)
+    
     self.xy[1] = self.spawn[1]
     self.xy[2] = self.spawn[2]
     
     self.dxy[1] = self.spawn[1]*offset
     self.dxy[2] = self.spawn[2]*offset
+    
+    map[self.xy[2]][self.xy[1]]:addObject(self)
 end
