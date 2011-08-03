@@ -304,16 +304,14 @@ function Ghost:draw(x,y)
 end
 
 function Ghost:move(dt)
-    print(#self.path)
     if #self.path == 0 then
         local paths = getPaths(self,1)
-        print("\t",#paths)
+
         if #paths >= 1 then
             local pick  = math.random(1,#paths)
-
             self.path   = paths[pick]
         elseif #paths == 0 then
-            print("Trapped")
+
             self.pxy[1] = -1
             self.pxy[2] = -1
             self.path   = {}
