@@ -12,24 +12,24 @@ function moveEnemy(self,x,y)
     if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
         local mod_x = math.floor(x/25)
         local mod_y = math.floor(y/25)
-        if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x]:canEnemyTraverse() then
+    
+        if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x].enemy_traverse then
             if map[mod_y][mod_x]:findObjectType("Door") == nil then
                 self.dxy[1] = x
                 self.dxy[2] = y
-               
                 map[self.xy[2]][self.xy[1]]:removeObject(self)
                 
                 setXY(self,mod_x,mod_y)
                 map[mod_y][mod_x]:addObject(self)
                 
-                return true
+                return 1
             else
-                return false
+                return 0
             end
         end
     end
 
-    return false
+    return -1
 end
 
 --[[--
@@ -48,9 +48,6 @@ function updateTimer(self,dt)
 end
 
 function setXY(self,x,y)
-    self.pxy[1] = self.xy[1]
-    self.pxy[2] = self.xy[2]
-    
     self.xy[1] = x
     self.xy[2] = y
 end
@@ -90,7 +87,6 @@ function calculateDxDy(self,comp_dx,comp_dy,dt)
         elseif self.xy[2] < comp_dy then
             dy = dy + (self.speed*dt)
         end
-      
     return {dx,dy}
 end
 
@@ -204,7 +200,7 @@ function Zombie:getPaths()
     x    = self.xy[1]
     y    = self.xy[2] - 1
 
-    if x ~= self.pxy[1] and y ~= self.pxy[2] then
+    if not (x == self.pxy[1]) and not (y == self.pxy[2]) then
         local path = {}
         while y > 0 and (map[y][x].is_a == "Path") do
             table.insert(path, {x,y})
@@ -277,37 +273,28 @@ function Ghost:draw(x,y)
 end
 
 function Ghost:move(dt)
-    local target   = self:lineOfSight()       -- Search for target
-    local movement = self:getMovement()
-    --if #target > 0
-    
-    if self.nxy[1] > -1 and self.nxy[2] > - 1 then
-        local dxy = calculateDxDy(self, self.nxy[1], self.nxy[2],dt)
-        
-        if moveEnemy(self,dxy[1], dxy[2]) then
-            if self.nxy[1] == self.xy[1] and self.nxy[2] == self.xy[2] then
-                self.nxy[1] = -1
-                self.nxy[2] = -1
-            end        
-        end
+    local path = self:getPaths()
+    print(#path)
+    if self.nxy[1] > 0 and self.nxy[2] > 0 then
+        local dxy = calculateDxDy(self,self.nxy[1],self.nxy[1],dt)
+        self:moveCheck(dxy,dt)
     else
-        if #movement ~= 0 then
-            local pickdir = math.random(1,#movement)
-            local getdir = movement[pickdir]
+        if #path > 0 then
+            local pick = math.random(1,#path)
+            local nx   = path[pick][1]
+            local ny   = path[pick][2]
+            
+            if (nx == self.pxy[1] and ny == self.pxy[2]) and #path > 1 then
+                print("No repeats")
+            else
+                
+                self.nxy[1] = path[pick][1]
+                self.nxy[2] = path[pick][2]
 
-            self.nxy[1] = getdir[1]
-            self.nxy[2] = getdir[2]
-            
-            local dxy = calculateDxDy(self, getdir[1], getdir[2], dt)
-            
-            if moveEnemy(self,dxy[1],dxy[2]) then
-                if self.nxy[1] == self.xy[1] and self.nxy[2] == self.xy[2] then
-                    self.nxy[1] = -1
-                    self.nxy[2] = -1
-                end
+                local dxy = calculateDxDy(self,self.nxy[1],self.nxy[2],dt)
+                self:moveCheck(dxy,dt)
             end
         end
-
     end
 end
 
@@ -380,59 +367,51 @@ end
     Get the available movement locations.
     @return {{x,y}...}
 --]]--    
-function Ghost:getMovement()
-    local movement = {}
-    local x = self.xy[1]-1
+function Ghost:getPaths()
+    local paths = {}
+    
+    local x    = self.xy[1] - 1
+    local y    = self.xy[2]
+    if map[y][x].is_a == "Path" then
+        table.insert(paths, {x, y})
+    end
+
+    x    = self.xy[1] + 1
+    y    = self.xy[2]
+    
+    if map[y][x].is_a == "Path" then
+        table.insert(paths, {x, y})
+    end
+
+    x    = self.xy[1]
+    y    = self.xy[2] - 1
+
+    if map[y][x].is_a == "Path" then
+        table.insert(paths, {x, y})
+    end
+    
+    x    = self.xy[1]
+    y    = self.xy[2] + 1
+    if map[y][x].is_a == "Path" then
+        table.insert(paths, {x, y})
+    end
+    
+    return paths
+end
+
+function Ghost:moveCheck(dxy,dt)
+    local x = self.xy[1]
     local y = self.xy[2]
     
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x].is_a == "Path" then
-                if map[y][x]:findObjectType("Enemy") == nil then
-                    table.insert(movement, {x, y})
-                end
-            end
-        end
-    end
+    local mv = moveEnemy(self,dxy[1],dxy[2])
+    if mv == 1 then
+        self.pxy[1] = x
+        self.pxy[2] = y
         
-    x = self.xy[1]+1
-    y = self.xy[2]
-
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x].is_a == "Path" then
-                if map[y][x]:findObjectType("Enemy") == nil then
-                    table.insert(movement, {x, y})
-                end
-            end
-        end
+        self.nxy[1] = -1
+        self.nxy[2] = -1
+    elseif mv == 0 then
+        self.nxy[1] = -1
+        self.nxy[2] = -1
     end
-        
-    x = self.xy[1]
-    y = self.xy[2] - 1
-
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then    
-        if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x].is_a == "Path" then
-                if map[y][x]:findObjectType("Enemy") == nil then
-                    table.insert(movement, {x, y})
-                end
-            end
-        end
-    end
-        
-    x = self.xy[1]
-    y = self.xy[2] + 1
-
-    if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
-        if not (x == self.pxy[1] and y == self.pxy[2]) then
-            if map[y][x].is_a == "Path" then
-                if map[y][x]:findObjectType("Enemy") == nil then
-                    table.insert(movement, {x, y})
-                end
-            end
-        end
-    end
-    
-    return movement
 end

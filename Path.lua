@@ -15,7 +15,7 @@ function Path.create(contains, chTraverse, enTraverse)
     obj.is_a          = "Path"
     obj.contains      = {}
     obj.char_traverse = chTraverse
-    obj.enem_traverse = enTraverse
+    obj.enemy_traverse = enTraverse
     obj.priority      = 0
     
     if contains ~= nil then table.insert(obj.contains, contains) end
@@ -69,10 +69,6 @@ function Path:removeObject(object)
             table.remove(self.contains,i)
         end
     end
-end
-
-function Path:canEnemyTraverse()
-    return self.enem_traverse
 end
 
 function Path:canCharTraverse()
