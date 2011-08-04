@@ -130,12 +130,12 @@ end
 function deleteLevel()
     map = {}        -- Better way?
     
-    for i,v in ipairs(enemy_list) do
-        table.remove(enemy_list,i)
+    while #enemy_list > 0 do
+        table.remove(enemy_list,1)
     end
     
-    for i,v in ipairs(door_list) do
-        table.remove(door_list,i)
+    while #door_list > 0 do
+        table.remove(door_list,1)
     end
 end
 

@@ -313,30 +313,40 @@ function Ghost:draw(x,y)
 end
 
 function Ghost:move(dt)
-    if #self.path == 0 then
-        local paths = getPaths(self,1)
-
-        if #paths >= 1 then
-            local pick  = math.random(1,#paths)
-            self.path   = paths[pick]
-        elseif #paths == 0 then
-
+    local target = self:lineOfSight()
+    
+    if #target > 0 then
+        if self.is_vulnerable then
+            self.path   = {self.pxy}
             self.pxy[1] = -1
             self.pxy[2] = -1
-            self.path   = {}
         end
     else
-        local nx = self.path[1][1]
-        local ny = self.path[1][2]
+        if #self.path == 0 then
+            local paths = getPaths(self,1)
 
-        local dxy = calculateDxDy(self,nx,ny,dt)
-        
-        if moveEnemy(self,dxy[1],dxy[2]) then
-            if self.xy[1] == nx and self.xy[2] == ny then
-                table.remove(self.path,1)
+            if #paths >= 1 then
+                local pick  = math.random(1,#paths)
+                self.path   = paths[pick]
+            elseif #paths == 0 then
+
+                self.pxy[1] = -1
+                self.pxy[2] = -1
+                self.path   = {}
             end
         else
-            self.path = {}
+            local nx = self.path[1][1]
+            local ny = self.path[1][2]
+
+            local dxy = calculateDxDy(self,nx,ny,dt)
+            
+            if moveEnemy(self,dxy[1],dxy[2]) then
+                if self.xy[1] == nx and self.xy[2] == ny then
+                    table.remove(self.path,1)
+                end
+            else
+                self.path = {}
+            end
         end
     end
 end
