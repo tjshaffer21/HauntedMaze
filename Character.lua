@@ -31,7 +31,7 @@ function Character:moveChar(x,y)
     if (y >= 25 and y <= mapObj.xy[2]) and (x >= 25 and x <= mapObj.xy[1]+25) then
         local mod_x = math.floor(x/offset)
         local mod_y = math.floor(y/offset)
-        if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x]:char_traverse then
+        if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x].char_traverse then
             if map[mod_y][mod_x]:findObjectType("Door") == nil then
                 self.dxy[1] = x
                 self.dxy[2] = y

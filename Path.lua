@@ -37,17 +37,13 @@ function Path:draw(x,y)
 end
 
 function Path:addObject(object)
-    for i,v in ipairs(self.contains) do
-        if not (v == object) then
-            table.insert(self.contains, object)
-        end
-    end
+    table.insert(self.contains, object)
 end
 
 --[[--
-    Check if object type is in Path.
-    @parameter string - Type to search for
-    @return first object found, else nil
+    Check the path for the object.
+    @parameter e
+    @return bool
 --]]--
 function Path:findObjectType(typ)
     for i,v in ipairs(self.contains) do

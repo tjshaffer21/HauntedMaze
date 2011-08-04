@@ -72,7 +72,7 @@ end
 --]]--
 function vulnerable(self)
     if self.is_vulnerable == true then
-        self.vultimer = self.vultimer + 500
+        self.vulnerability = self.vulnerability + 500
     else
         self.is_vulnerable = true
     end
