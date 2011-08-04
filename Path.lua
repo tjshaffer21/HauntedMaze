@@ -12,11 +12,11 @@ function Path.create(contains, chTraverse, enTraverse)
     local obj = {}
     setmetatable(obj, Path)
     
-    obj.is_a          = "Path"
-    obj.contains      = {}
-    obj.char_traverse = chTraverse
-    obj.enemy_traverse = enTraverse
-    obj.priority      = 0
+    obj.is_a          = "Path"          -- Type
+    obj.contains      = {}              -- Objects in this path
+    obj.char_traverse = chTraverse      -- Character traversal
+    obj.enemy_traverse = enTraverse     -- Enemy traversal
+    obj.priority      = 0               -- Drawing priority
     
     if contains ~= nil then table.insert(obj.contains, contains) end
     
@@ -37,9 +37,18 @@ function Path:draw(x,y)
 end
 
 function Path:addObject(object)
-    table.insert(self.contains, object)
+    for i,v in ipairs(self.contains) do
+        if not (v == object) then
+            table.insert(self.contains, object)
+        end
+    end
 end
 
+--[[--
+    Check if object type is in Path.
+    @parameter string - Type to search for
+    @return first object found, else nil
+--]]--
 function Path:findObjectType(typ)
     for i,v in ipairs(self.contains) do
         if v.is_a == typ then
@@ -69,10 +78,6 @@ function Path:removeObject(object)
             table.remove(self.contains,i)
         end
     end
-end
-
-function Path:canCharTraverse()
-    return self.char_traverse
 end
 
 --Private

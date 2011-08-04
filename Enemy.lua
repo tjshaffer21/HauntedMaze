@@ -1,15 +1,16 @@
 --[[--------------------------------------------------------------------------
 --                              Enemy                                       --
---                      Basic classes found in all Enemy types.             --
+--                      Basic functions found in all Enemy types.           --
 --------------------------------------------------------------------------]]--
 --[[--
     Move to given x,y.
-    @parameter x
-    @parameter y
-    @return bool
+    @parameter x - drawing x-coordinate
+    @parameter y - drawing y-coordinate
+    @return 1 if successful, -1 if boundary issue, else 0 if path issue (wall,door,etc)
 --]]--
 function moveEnemy(self,x,y)
     if y > 0 and y <= mapObj.xy[2] and x > 0 and x <= mapObj.xy[1] then
+        -- Convert to map coordinates
         local mod_x = math.floor(x / offset)
         local mod_y = math.floor(y / offset)
     
@@ -17,8 +18,8 @@ function moveEnemy(self,x,y)
             if map[mod_y][mod_x]:findObjectType("Door") == nil then
                 self.dxy[1] = x
                 self.dxy[2] = y
-                map[self.xy[2]][self.xy[1]]:removeObject(self)
                 
+                map[self.xy[2]][self.xy[1]]:removeObject(self)
                 setXY(self,mod_x,mod_y)
                 map[mod_y][mod_x]:addObject(self)
                 
@@ -28,6 +29,7 @@ function moveEnemy(self,x,y)
                 return 0
             end
         end
+        return 0
     end
 
     return -1
@@ -35,6 +37,9 @@ end
 
 --[[--
     Decrement the vulnerability timer.
+    Calls invulnerable if reaches zero.
+    @parameter self
+    @parameter dt
     @return true if timer reaches zero, else false
 --]]--
 function updateVulnerability(self,dt)
@@ -61,6 +66,10 @@ function invulnerable(self)
     self.vulnerability  = 500
 end
 
+--[[--
+    Enemy becomes vulnerable or adds to previous vulnerability.
+    @parameter self
+--]]--
 function vulnerable(self)
     if self.is_vulnerable == true then
         self.vultimer = self.vultimer + 500
@@ -191,24 +200,22 @@ function Zombie.create(x,y)
     local obj = {}
     setmetatable(obj, Zombie)
     
-    obj.is_a        = "Enemy"
-    obj.kind        = "Zombie"
-    obj.priority    = 2
-    obj.value       = 250
-    obj.speed       = 50
+    obj.is_a        = "Enemy"           -- Type
+    obj.kind        = "Zombie"          -- Kind
+    obj.priority    = 2                 -- Drawing priority
+    obj.value       = 250               -- Points value
+    obj.speed       = 50                -- Movement speed
+
+    obj.path        = {}                -- Current movement path
     
-    obj.dir         = -1
-    obj.path        = {}
+    obj.is_vulnerable       = false     -- Vulnerability
+    obj.vulnerability       = 500       -- Vulnerability length
+    obj.vulnerability_spd   = 100       -- Speed at which vulnerability decreases
     
-    obj.is_vulnerable       = false
-    obj.vulnerability       = 500
-    obj.vulnerability_spd   = 100
-    
-    obj.dxy = {x*25,y*25}   -- Drawing {x,y}
-    obj.xy  = {x,y}         -- Current {x,y}
-    obj.pxy = {-1,-1}       -- Previous {x,y}
-    
-    obj.spawn   = {x,y}
+    obj.dxy     = {x*offset,y*offset}   -- Drawing {x,y}
+    obj.xy      = {x,y}                 -- Current {x,y}
+    obj.pxy     = {-1,-1}               -- Previous {x,y}
+    obj.spawn   = {x,y}                 -- Spawn {x,y}
     
     return obj
 end
@@ -276,20 +283,22 @@ function Ghost.create(x,y)
     local obj = {}
     setmetatable(obj, Ghost)
     
-    obj.is_a        = "Enemy"
-    obj.kind        = "Ghost"
-    obj.priority    = 2
-    obj.value       = 500
-    obj.speed       = 200
+    obj.is_a        = "Enemy"           -- Type
+    obj.kind        = "Ghost"           -- Kind
+    obj.priority    = 2                 -- Drawing priority
+    obj.value       = 500               -- Points value
     
-    obj.is_vulnerable       = false
-    obj.vulnerability       = 500
-    obj.vulnerability_spd   = 100
+    obj.speed       = 200               -- Movement speed
+    obj.path        = {}                -- Current movement path
+    
+    
+    obj.is_vulnerable       = false     -- Vulnerability
+    obj.vulnerability       = 500       -- Vulnerability length
+    obj.vulnerability_spd   = 100       -- Speed at which vulnerability decreases
     
     obj.dxy     = {x*offset,y*offset}   -- Drawing {x,y}
     obj.xy      = {x,y}                 -- Current {x,y}
     obj.pxy     = {-1,-1}               -- Previous {x,y}
-    obj.path    = {}
     obj.spawn   = {x,y}                 -- Spawn {x,y}
     
     return obj

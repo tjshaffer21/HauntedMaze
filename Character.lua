@@ -5,13 +5,13 @@ function Character.create(x,y)
     local obj = {}
     setmetatable(obj, Character)
     
-    obj.is_a        = "Character"
-    obj.priority    = 2
-    obj.lives       = 3
-    obj.speed       = 200
-    obj.dxy         = {x*25, y*25}
-    obj.xy          = {x,y}
-    obj.spawn       = {x,y}
+    obj.is_a        = "Character"       -- Type
+    obj.priority    = 2                 -- Drawing priority
+    obj.lives       = 3                 -- Lives
+    obj.speed       = 200               -- Movement speed
+    obj.dxy         = {x*25, y*25}      -- Drawing coordinates
+    obj.xy          = {x,y}             -- Map coordinates
+    obj.spawn       = {x,y}             -- Spawn point
     
     return obj
 end
@@ -31,7 +31,7 @@ function Character:moveChar(x,y)
     if (y >= 25 and y <= mapObj.xy[2]) and (x >= 25 and x <= mapObj.xy[1]+25) then
         local mod_x = math.floor(x/offset)
         local mod_y = math.floor(y/offset)
-        if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x]:canCharTraverse() then
+        if map[mod_y][mod_x].is_a == "Path" and map[mod_y][mod_x]:char_traverse then
             if map[mod_y][mod_x]:findObjectType("Door") == nil then
                 self.dxy[1] = x
                 self.dxy[2] = y
