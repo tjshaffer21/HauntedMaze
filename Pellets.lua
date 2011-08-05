@@ -1,5 +1,5 @@
---[[--------------------------------------------------------------------------
---                                  Pellet                                  --
+--[[--------------------------------Pellet------------------------------------
+--                                                                          --
 -- A normal type of pellet. All pellets, including SuperPellets must be     --
 -- be gathered to advance to the next level.                                --
 -- Value:   100
@@ -11,9 +11,9 @@ function Pellet.create()
     local obj = {}
     setmetatable(obj, Pellet)
     
-    obj.is_a     = "Pellet"
-    obj.priority = 1
-    obj.value    = 100
+    obj.is_a     = "Pellet"             -- Type
+    obj.priority = 1                    -- Drawing priority
+    obj.value    = 100                  -- Point value
     
     return obj
 end
@@ -22,11 +22,11 @@ function Pellet:draw(x,y)
     love.graphics.draw(pelletimg,x,y)
 end
 
---[[--------------------------------------------------------------------------
---                              SuperPellet                                 --
+--[[----------------------------SuperPellet-----------------------------------
+--                                                                          --
 -- SuperPellets are rarer than normal Pellets. As a side-effect they provide--
 -- temporary vulnerability to the enemies.                                  --
--- Value:   500
+-- Value:   500                                                             --
 --------------------------------------------------------------------------]]--
 
 SuperPellet = {}
@@ -36,9 +36,9 @@ function SuperPellet.create()
     local obj = {}
     setmetatable(obj, SuperPellet)
     
-    obj.is_a        = "SuperPellet"
-    obj.priority    = 1
-    obj.value       = 500
+    obj.is_a        = "SuperPellet"     -- Type
+    obj.priority    = 1                 -- Drawing priority
+    obj.value       = 500               -- Point value
     
     return obj
 end

@@ -1,5 +1,5 @@
---[[--------------------------------------------------------------------------
---                              Enemy                                       --
+--[[----------------------------Enemy-----------------------------------------
+--                                                                          --
 --                      Basic functions found in all Enemy types.           --
 --------------------------------------------------------------------------]]--
 --[[--
@@ -104,6 +104,21 @@ function calculateDxDy(self,comp_dx,comp_dy,dt)
 end
 
 --[[--
+    Check if a path is at the coordinates.
+    @parameter x
+    @parameter y
+    @return bool
+--]]--
+function isPath(x,y)
+    if y > 0 and y <= math.floor(mapObj.xy[2] / offset) and 
+      x > 0 and x <= math.floor(mapObj.xy[1] / offset) then
+        if map[y][x].is_a == "Path" then return true end
+    end
+    
+    return false
+end
+
+--[[--
     Finds available paths.
     @parameter self
     @parameter distance - Distance to search in each direction
@@ -115,7 +130,7 @@ function getPaths(self,distance)
     local i    = 1
     local x    = self.xy[1] - 1
     local y    = self.xy[2]
-   if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+    if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
         local path = {}
         while (x > 0 and (map[y][x].is_a == "Path")) and i <= distance do
             table.insert(path, {x,y})
@@ -127,7 +142,7 @@ function getPaths(self,distance)
             table.insert(paths,path)
         end
     end
-    
+
     i   = 1
     x   = self.xy[1] + 1
     y   = self.xy[2]
@@ -144,11 +159,11 @@ function getPaths(self,distance)
             table.insert(paths,path)
         end
     end
-    
+
     i   = 1
     x   = self.xy[1]
     y   = self.xy[2] - 1
-   if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+    if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
         local path = {}
         while (y > 0 and (map[y][x].is_a == "Path")) and i <= distance do
             table.insert(path, {x,y})
@@ -160,11 +175,11 @@ function getPaths(self,distance)
             table.insert(paths,path)
         end
     end
-    
+
     i   = 1
     x   = self.xy[1]
     y   = self.xy[2] + 1
-   if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
+    if not (x == self.pxy[1] and y == self.pxy[2]) or (map[y][x]:findObject("Door") == nil) then
         local path = {}
         while (y <= math.floor(mapObj.xy[2]/25) and (map[y][x].is_a == "Path"))
           and i <= distance do
@@ -177,14 +192,123 @@ function getPaths(self,distance)
             table.insert(paths, path)
         end
     end
-    
+
     return paths
 end
 
 
---[[--------------------------------------------------------------------------
---                                  Zombie                                  --
---  Type:  Stupid                                                           --
+--[[--
+    Get the adjacent paths of the given {x,y} value.
+    @parameter x
+    @parameter y
+    @parameter counter
+    @return list - table of adjacent paths.
+--]]--
+function getAdjacentPaths(x,y,counter)
+    local list = {}
+
+    local nx = x + 1
+    local ny = y
+    
+    if isPath(nx,ny) then
+        table.insert(list, {nx,ny,counter})
+    end
+    
+    nx = x - 1
+    ny = y
+    
+    if isPath(nx,ny) then
+        table.insert(list, {nx,ny,counter})
+    end
+    
+    nx = x
+    ny = y + 1
+    
+    if isPath(nx,ny) then
+        table.insert(list, {nx,ny,counter})
+    end
+    
+    nx = x
+    ny = y - 1
+    
+    if isPath(nx,ny) then
+        table.insert(list, {nx,ny,counter})
+    end
+
+    return list
+end
+
+--[[--
+    Recursively finds the path from {cx,cy} to {dx,dy}
+    Algorithm:
+        1. Create a list of the four adjacent cells with a counter variable
+           {x,y,c}
+        2. Check each cell:
+            a. If the cell is a wall then remove from the list 
+               (getAdjacentPaths only includes Path cells).
+            b. If the {x,y} element is already in the queue with a <= counter
+               then remove it from the list.
+        3. If distance between the next cell and the destination cell is less
+           than the distance between current cell and the destination cell then
+           add to the queue.
+        4. Repeat until {cx,cy} == {dx,dy}
+    @parameter cx       - current x
+    @parameter cy       - current y
+    @parameter dx       - destination x
+    @parameter dy       - destination y
+    @parameter queue    - main call: nil.
+    @parameter counter  - main call: 0.
+    @return queue       - table of {dx,dy,counter}
+--]]--
+function pathFinding(cx,cy,dx,dy,queue,counter)
+    if cx == dx and cy == dy then
+        return queue
+    end
+    
+    local c = counter + 1  
+    local q = {}
+    local distance = math.sqrt(
+        math.pow(dx-cx,2) + math.pow(dy-cy,2))
+
+    if queue == nil then
+        table.insert(q,{cx,cy,0})
+    else
+        q = queue
+    end
+
+    local list  = getAdjacentPaths(cx,cy, c)
+
+    local j = 1
+    while j > 0 and #list > 0 and j <= #list do
+        local curr = j              -- Take removals into account.
+        for k,v in ipairs(q) do
+            if v[1] == list[j][1] and v[2] == list[j][2] and v[3] <= list[j][3] then
+                table.remove(list,j)
+                j = j - 1
+                
+                if j <= 0 then break end
+            end
+        end
+        
+        j = j + 1
+    end
+    
+    for k,v in ipairs(list) do     
+        local newDistance = math.sqrt(
+            math.pow(dx-v[1],2) + math.pow(dy-v[2],2))        
+
+        if newDistance < distance then
+            table.insert(q,v)
+            
+            pathFinding(v[1],v[2],dx,dy,q,c)   
+        end
+    end
+    
+    return q
+end
+
+--[[--------------------------------Zombie------------------------------------
+--                                                                          --
 --  Value: 250                                                              --
 --  AI:                                                                     --
 --      Speed    -  50  (Slow)                                              --
@@ -257,8 +381,8 @@ function Zombie:respawn()
     self.xy[1] = self.spawn[1]
     self.xy[2] = self.spawn[2]
     
-    self.dxy[1] = self.xy[1] * 25
-    self.dxy[2] = self.xy[2] * 25
+    self.dxy[1] = self.xy[1] * offset
+    self.dxy[2] = self.xy[2] * offset
     
     map[self.xy[2]][self.xy[1]]:addObject(self)
     
@@ -266,8 +390,8 @@ function Zombie:respawn()
 end
 
 
---[[--------------------------------------------------------------------------
---                                  Ghost                                   --
+--[[--------------------------------Ghost-------------------------------------
+--                                                                          --
 --  Value: 500                                                              --
 --  AI:                                                                     --
 --      Speed    - 200 (Normal)                                             --
@@ -315,38 +439,61 @@ end
 function Ghost:move(dt)
     local target = self:lineOfSight()
     
-    if #target > 0 then
-        if self.is_vulnerable then
-            self.path   = {self.pxy}
+    -- Target found
+    if not (target == nil) then
+        if self.is_vulnerable then  -- Flee
+            self.path       = {}
+            local fleePath  = getPaths(self,1)
+
+            local distance  = math.sqrt(
+                math.pow(target[1]-self.xy[1],2) + math.pow(
+                target[2]-self.xy[2],2))
+                
+            for i,v in ipairs(fleePath) do
+                local newDistance = math.sqrt(
+                    math.pow(target[1]-v[1][1],2) + math.pow(target[2]-v[1][2],2))
+                    
+                if newDistance > distance then
+                    table.insert(self.path,v[1])
+                    break
+                end
+            end
+        else                        -- Chase
+            local path = pathFinding(self.xy[1], self.xy[2], target[1], 
+              target[2],nil,0)
+            table.remove(path,1) -- Already at first element
+
+            if #path > 0 then
+                self.path = {}
+                for i,v in ipairs(path) do
+                    table.insert(self.path,v)
+                end
+            end
+        end
+    end
+
+    -- Find next move
+    if #self.path == 0 then
+        local paths  = getPaths(self,1)
+        if #paths >= 1 then
+            local pick  = math.random(1,#paths)
+            self.path   = paths[pick]
+        elseif #paths == 0 then -- If no path found, allow backtrack.
             self.pxy[1] = -1
             self.pxy[2] = -1
+            self.path   = {}
         end
     else
-        if #self.path == 0 then
-            local paths = getPaths(self,1)
-
-            if #paths >= 1 then
-                local pick  = math.random(1,#paths)
-                self.path   = paths[pick]
-            elseif #paths == 0 then
-
-                self.pxy[1] = -1
-                self.pxy[2] = -1
-                self.path   = {}
+        local nx = self.path[1][1]
+        local ny = self.path[1][2]
+        
+        local dxy = calculateDxDy(self,nx,ny,dt)
+        if moveEnemy(self,dxy[1],dxy[2]) then
+            if self.xy[1] == nx and self.xy[2] == ny then
+                table.remove(self.path,1)
             end
         else
-            local nx = self.path[1][1]
-            local ny = self.path[1][2]
-
-            local dxy = calculateDxDy(self,nx,ny,dt)
-            
-            if moveEnemy(self,dxy[1],dxy[2]) then
-                if self.xy[1] == nx and self.xy[2] == ny then
-                    table.remove(self.path,1)
-                end
-            else
-                self.path = {}
-            end
+            self.path = {}
         end
     end
 end
@@ -357,8 +504,8 @@ function Ghost:respawn()
     self.xy[1] = self.spawn[1]
     self.xy[2] = self.spawn[2]
     
-    self.dxy[1] = self.xy[1] * 25
-    self.dxy[2] = self.xy[2] * 25
+    self.dxy[1] = self.xy[1] * offset
+    self.dxy[2] = self.xy[2] * offset
     
     map[self.xy[2]][self.xy[1]]:addObject(self)
     
@@ -372,7 +519,6 @@ end
 --]]--
 function Ghost:lineOfSight()
     local distance  = 3
-    local target    = {}
 
     local i = -distance
     while i <= distance do
@@ -380,6 +526,7 @@ function Ghost:lineOfSight()
         local j = -1
 
         if y > 0 and y <= math.floor(mapObj.xy[2] / offset) then
+            -- [-distance, 0)
             while j >= -distance do
                 local x = self.xy[1]+j
 
@@ -388,7 +535,7 @@ function Ghost:lineOfSight()
                         -- Ignore path if another Enemy is there
                         if map[y][x]:findObjectType("Enemy") == nil then
                             if map[y][x]:findObjectType("Character") ~= nil then
-                                table.insert(target, {self.xy[2]+i,self.xy[1]+j})
+                                return {self.xy[1]+j,self.xy[2]+i}
                             end
                         end
                     end
@@ -397,6 +544,7 @@ function Ghost:lineOfSight()
                 j = j - 1
             end
             
+            -- [0,distance]
             j = 0
             while j <= distance do
                 local x = self.xy[1]+j
@@ -406,7 +554,7 @@ function Ghost:lineOfSight()
                         -- Ignore path if another Enemy is there
                         if map[y][x]:findObjectType("Enemy") == nil then
                             if map[y][x]:findObjectType("Character") ~= nil then
-                                table.insert(target, {self.xy[2]+i,self.xy[1]+j})
+                                return {self.xy[1]+j,self.xy[2]+i}
                             end
                         end
                     end
@@ -417,5 +565,5 @@ function Ghost:lineOfSight()
         i = i + 1
     end
 
-    return target
+    return nil
 end
